@@ -1,0 +1,75 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-rename-all-user-facing-app-name-text-to-scholar-gold-across-the-ui-including-the-browser-tab-title-the-authenticated-landing-header-title-section-the-login-screen-brand-name-and-the-top-navigation-header-brand-label",
+      "featureTitle": "Rename all user-facing app name text to “Scholar Gold” across the UI, including: the browser tab title, the authenticated landing header/title section, the Login screen brand name, and the top navigation header brand label.",
+      "files": [
+        "frontend/index.html",
+        "frontend/src/App.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/LoginScreen.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-10"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-replace-the-app-s-brand-mark-currently-the-graduationcap-icon-in-the-header-login-with-a-static-image-logo-derived-from-the-user-provided-scholar-gold-image-and-ensure-it-renders-crisply-in-light-dark-themes",
+      "featureTitle": "Replace the app’s brand mark (currently the GraduationCap icon in the header/login) with a static image logo derived from the user-provided “Scholar Gold” image, and ensure it renders crisply in light/dark themes.",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/LoginScreen.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-11"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-set-the-application-favicon-app-icon-to-the-provided-scholar-gold-logo-image-by-adding-the-necessary-icon-links-in-the-html-entry-point-and-placing-the-generated-icon-assets-in-the-frontend-public-assets-folder",
+      "featureTitle": "Set the application favicon/app icon to the provided “Scholar Gold” logo image by adding the necessary icon links in the HTML entry point and placing the generated icon assets in the frontend public assets folder.",
+      "files": [
+        "frontend/index.html"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

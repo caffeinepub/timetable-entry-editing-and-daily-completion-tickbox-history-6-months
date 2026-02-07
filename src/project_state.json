@@ -1,0 +1,197 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 7,
+  "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, and a daily study streak (10+ minutes/day), while ensuring the app is not renamed and AI-generated background pricing is unchanged.",
+  "architectural_notes": [
+    "Do not rename the app (explicit requirement).",
+    "Timetable completion tracking requires backend schema changes and may require a migration (main.mo/migration.mo loop risk).",
+    "Keep AI-generated background pricing unchanged (do not alter existing AI-gen background cost).",
+    "Rename request conflicts with existing requirement: do not rename the app (must be resolved before proceeding)."
+  ],
+  "known_issues": [
+    "Build/editor may loop between main.mo and migration.mo when attempting schema/migration changes for timetable completion history."
+  ],
+  "isFixRequest": false,
+  "imageRequirements": "## Required Images\n- Square app icon crop based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_512x512.png)\n- App icon for PWA/large usage based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_192x192.png)\n- Favicon based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-favicon.dim_32x32.png)",
+  "existing_features": [
+    {
+      "id": "feature-add-support-for-editing-an-existing-timetable-entry-while-keeping-the-schedule-the-same-the-entry-s-date-time-starttime-endtime-must-not-change-but-the-user-must-be-able-to-update-non-schedule-fields-at-minimum-title-optionally-activitytype-and-colorcode",
+      "title": "Add support for editing an existing timetable entry while keeping the schedule the same: the entry’s date/time (startTime/endTime) must not change, but the user must be able to update non-schedule fields (at minimum: title; optionally: activityType and colorCode).",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-timetable-entries-can-be-deleted-from-the-timetable-list-ui-and-that-deletion-is-persisted-in-the-backend",
+      "title": "Ensure timetable entries can be deleted from the timetable list UI and that deletion is persisted in the backend.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-daily-completion-tick-box-for-each-timetable-entry-the-checkbox-should-represent-whether-the-entry-is-completed-for-the-current-day-reset-automatically-each-new-day-and-allow-the-user-to-mark-unmark-completion-for-today",
+      "title": "Add a daily completion tick box for each timetable entry. The checkbox should represent whether the entry is completed for the current day, reset automatically each new day, and allow the user to mark/unmark completion for today.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-store-and-display-completion-history-for-timetable-entry-daily-tick-boxes-and-allow-the-user-to-view-up-to-the-last-6-months-of-completion-status-per-entry",
+      "title": "Store and display completion history for timetable-entry daily tick boxes, and allow the user to view up to the last 6 months of completion status per entry.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-charge-200-coins-for-each-background-photo-upload-capture-from-the-device-upload-image-and-take-photo-in-background-settings-preventing-the-upload-capture-from-being-applied-if-the-user-does-not-have-enough-coins",
+      "title": "Charge 200 coins for each background photo upload/capture from the device (Upload Image and Take Photo in Background Settings), preventing the upload/capture from being applied if the user does not have enough coins.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-coin-purchased-non-ai-backgrounds-permanently-owned-once-a-user-buys-a-background-re-equipping-it-later-must-not-charge-coins-again",
+      "title": "Make coin-purchased (non-AI) backgrounds permanently owned: once a user buys a background, re-equipping it later must not charge coins again.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-timetable-entry-history-icon-button-with-a-emoji-button-that-opens-the-same-completion-history-dialog-when-tapped",
+      "title": "Replace the Timetable entry “history” icon button with a 🔥 emoji button that opens the same completion history dialog when tapped.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-daily-study-streak-if-a-user-studies-at-least-10-minutes-in-a-day-their-streak-increases-by-1-day-and-the-streak-continues-day-to-day-as-long-as-the-user-meets-the-10-minute-daily-threshold",
+      "title": "Add a daily study streak: if a user studies at least 10 minutes in a day, their streak increases by 1 day, and the streak continues day-to-day as long as the user meets the 10-minute daily threshold.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-rename-all-user-facing-app-name-text-to-scholar-gold-across-the-ui-including-the-browser-tab-title-the-authenticated-landing-header-title-section-the-login-screen-brand-name-and-the-top-navigation-header-brand-label",
+      "title": "Rename all user-facing app name text to “Scholar Gold” across the UI, including: the browser tab title, the authenticated landing header/title section, the Login screen brand name, and the top navigation header brand label.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-replace-the-app-s-brand-mark-currently-the-graduationcap-icon-in-the-header-login-with-a-static-image-logo-derived-from-the-user-provided-scholar-gold-image-and-ensure-it-renders-crisply-in-light-dark-themes",
+      "title": "Replace the app’s brand mark (currently the GraduationCap icon in the header/login) with a static image logo derived from the user-provided “Scholar Gold” image, and ensure it renders crisply in light/dark themes.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-set-the-application-favicon-app-icon-to-the-provided-scholar-gold-logo-image-by-adding-the-necessary-icon-links-in-the-html-entry-point-and-placing-the-generated-icon-assets-in-the-frontend-public-assets-folder",
+      "title": "Set the application favicon/app icon to the provided “Scholar Gold” logo image by adding the necessary icon links in the HTML entry point and placing the generated icon assets in the frontend public assets folder.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Allow editing timetable entries without changing the existing schedule (time/recurrence stays the same)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Allow deleting timetable entries",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Add a tickbox per timetable entry to mark completion; tickbox resets daily at midnight",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Store and display completion history for timetable tickboxes (requested up to last 6 months; previously discussed fallback to ~30 days/max safe days)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Set initial coin balance to 50 coins when a new account is created",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Award 50 coins for each 60 minutes on a stopwatch (reward logic)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Charge 200 coins to upload a photo from device (existing upload feature becomes paid)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Make purchased backgrounds permanently owned so re-equipping does not require paying again",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Limit stopwatch coin reward (50 coins per 60 minutes) to a maximum of 3 times per day",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Change the timetable History button to a 🔥 button that opens the same history view on tap",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add a daily study streak: if user studies at least 10 minutes in a day, streak increments by 1 day",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Limit the stopwatch coin reward so it can be earned at most 3 times per day (i.e., reward payout is capped to three reward events per calendar day for each user).",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Rename the app to 'Scholar Gold'",
+      "reqIds": [],
+      "status": "blocked"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Change the app photo/icon to match the user-provided image",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Timetable entry editing and daily completion tickbox history (6 months)",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

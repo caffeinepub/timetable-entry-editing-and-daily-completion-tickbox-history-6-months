@@ -1,0 +1,91 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Rename app to Scholar Gold and update logo/favicon assets",
+  "requirements": [
+    {
+      "id": "REQ-10",
+      "summary": "Rename all user-facing app name text to “Scholar Gold” across the UI (tab title, login brand, header brand, authenticated hero title).",
+      "acceptanceCriteria": [
+        "Browser tab/title displays “Scholar Gold”.",
+        "Login screen brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
+        "Top header brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
+        "Authenticated home/hero title displays “Scholar Gold” (replacing “Exam Prep Hub”)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Update the document <title> to “Scholar Gold” to ensure the browser tab title matches the new app name."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Replace the authenticated landing/hero title text “Exam Prep Hub” with “Scholar Gold” (keep other copy unchanged unless it contains the old brand name)."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Replace the header brand label text “Exam Prep Hub” with “Scholar Gold”."
+        },
+        {
+          "path": "frontend/src/components/LoginScreen.tsx",
+          "operation": "modify",
+          "description": "Replace the login screen header brand label text “Exam Prep Hub” with “Scholar Gold”."
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Replace the GraduationCap brand mark with a static image logo and render it crisply in light/dark themes.",
+      "acceptanceCriteria": [
+        "Header brand mark uses an image (not the GraduationCap icon).",
+        "Login screen brand mark uses the same image.",
+        "Logo image scales correctly and does not appear stretched or pixelated at typical sizes (e.g., 40x40)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the generated “Scholar Gold” square logo asset at frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png for crisp display at smaller sizes."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Replace the GraduationCap-based brand mark with an <img> using frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png; ensure sizing (e.g., 40x40) preserves aspect ratio and add light/dark-friendly styling (e.g., subtle ring/contrast) so it remains crisp across themes."
+        },
+        {
+          "path": "frontend/src/components/LoginScreen.tsx",
+          "operation": "modify",
+          "description": "Replace the GraduationCap-based brand mark with the same <img> logo used in the header (frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png), keeping consistent sizing and theme-friendly presentation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "summary": "Configure favicon/app icons using the provided “Scholar Gold” generated images and reference them from the HTML entry point.",
+      "acceptanceCriteria": [
+        "A favicon is configured and visible in the browser tab.",
+        "Icon assets are served as static files from the frontend (no backend routing).",
+        "The configured icon files exist under frontend/public/assets/generated and are referenced from the HTML entry point."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png",
+          "operation": "create",
+          "description": "Add the generated PWA/large icon asset at frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png."
+        },
+        {
+          "path": "frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png",
+          "operation": "create",
+          "description": "Add the generated favicon asset at frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Add favicon/app icon <link> tags referencing frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png, frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png, and frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png so browsers pick up the updated icon assets."
+        }
+      ]
+    }
+  ]
+}

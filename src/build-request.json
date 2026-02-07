@@ -1,0 +1,90 @@
+{
+  "kind": "build_request",
+  "title": "Rename app to “Scholar Gold” and set app icon/logo from provided image",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-10",
+      "text": "Rename all user-facing app name text to “Scholar Gold” across the UI, including: the browser tab title, the authenticated landing header/title section, the Login screen brand name, and the top navigation header brand label.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-rename-scholar-gold"
+        ],
+        "quotes": [
+          "rename the app as 'Scholar Gold'"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Browser tab/title displays “Scholar Gold”.",
+        "Login screen brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
+        "Top header brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
+        "Authenticated home/hero title displays “Scholar Gold” (replacing “Exam Prep Hub”)."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Replace the app’s brand mark (currently the GraduationCap icon in the header/login) with a static image logo derived from the user-provided “Scholar Gold” image, and ensure it renders crisply in light/dark themes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-rename-scholar-gold"
+        ],
+        "quotes": [
+          "make the app photo as this"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Header brand mark uses an image (not the GraduationCap icon).",
+        "Login screen brand mark uses the same image.",
+        "Logo image scales correctly and does not appear stretched or pixelated at typical sizes (e.g., 40x40)."
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Set the application favicon/app icon to the provided “Scholar Gold” logo image by adding the necessary icon links in the HTML entry point and placing the generated icon assets in the frontend public assets folder.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-rename-scholar-gold"
+        ],
+        "quotes": [
+          "make the app photo as this"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A favicon is configured and visible in the browser tab.",
+        "Icon assets are served as static files from the frontend (no backend routing).",
+        "The configured icon files exist under frontend/public/assets/generated and are referenced from the HTML entry point."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend remains single-actor; no backend changes are required for app renaming/icon updates.",
+    "Do not edit files under frontend/src/components/ui or other immutablePaths; compose existing UI components instead.",
+    "Use English for any user-facing text."
+  ],
+  "nonGoals": [
+    "Changing coin, timetable, streak, or other application logic.",
+    "Adding third-party authentication beyond Internet Identity.",
+    "Introducing new backend storage or migrations for branding changes."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Square app icon crop based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_512x512.png)",
+      "App icon for PWA/large usage based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_192x192.png)",
+      "Favicon based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-favicon.dim_32x32.png)"
+    ],
+    "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
+  }
+}

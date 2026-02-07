@@ -1,2 +1,3 @@
-# timetable-entry-editing-and-daily-completion-tickbox-history-6-months
-Exported from Caffeine project: Timetable entry editing and daily completion tickbox history (6 months)
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

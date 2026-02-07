@@ -1,0 +1,79 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-07T13:17:29.831Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-10",
+        "summary": "Rename all user-facing app name text to “Scholar Gold” across the UI, including: the browser tab title, the authenticated landing header/title section, the Login screen brand name, and the top navigation header brand label.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/index.html",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/LoginScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/index.html",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/LoginScreen.tsx"
+        ]
+      },
+      {
+        "id": "REQ-11",
+        "summary": "Replace the app’s brand mark (currently the GraduationCap icon in the header/login) with a static image logo derived from the user-provided “Scholar Gold” image, and ensure it renders crisply in light/dark themes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/LoginScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/LoginScreen.tsx"
+        ]
+      },
+      {
+        "id": "REQ-12",
+        "summary": "Set the application favicon/app icon to the provided “Scholar Gold” logo image by adding the necessary icon links in the HTML entry point and placing the generated icon assets in the frontend public assets folder.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png",
+          "frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png",
+          "frontend/index.html"
+        ],
+        "matchedFiles": [
+          "frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png",
+          "frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png",
+          "frontend/index.html"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/index.html",
+    "frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png",
+    "frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png",
+    "frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png",
+    "frontend/src/App.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/LoginScreen.tsx",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
