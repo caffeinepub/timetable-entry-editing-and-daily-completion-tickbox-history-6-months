@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 17,
   "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, a daily study streak (10+ minutes/day), and a new coin-gated multi-stage Level system (50 levels × 5 ranks) with sequential unlocks, while ensuring the app is not renamed and AI-generated background pricing is unchanged.",
   "architectural_notes": [
     "Do not rename the app (explicit requirement).",
@@ -17,7 +17,7 @@
     "Level progression currently appears incorrect: Level number may be incrementing per rank; it should stay the same for all 5 ranks within a Level.",
     "Avatar is not being added/applied (user reports avatar not added)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-add-support-for-editing-an-existing-timetable-entry-while-keeping-the-schedule-the-same-the-entry-s-date-time-starttime-endtime-must-not-change-but-the-user-must-be-able-to-update-non-schedule-fields-at-minimum-title-optionally-activitytype-and-colorcode",
@@ -160,6 +160,22 @@
       "title": "Add/fix user avatar support so uploading a profile photo from the Profile page persists to the backend and reliably renders as the user’s avatar (including after reload/log out + log in).",
       "reqIds": [
         "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-support-for-removing-a-user-s-profile-photo-avatar-from-the-profile-page-by-providing-a-clear-ui-action-e-g-remove-photo-that-when-confirmed-updates-the-user-profile-so-that-profileimage-becomes-null-and-the-ui-immediately-falls-back-to-the-default-avatar-fallback-initial-letter",
+      "title": "Add support for removing a user’s profile photo (avatar) from the Profile page by providing a clear UI action (e.g., “Remove Photo”) that, when confirmed, updates the user profile so that `profileImage` becomes `null` and the UI immediately falls back to the default avatar fallback (initial letter).",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-authenticated-header-avatar-ui-correctly-reflects-profile-photo-removal-by-re-rendering-the-fallback-avatar-when-profileimage-is-null-and-by-updating-promptly-after-the-remove-photo-action-completes-via-existing-react-query-invalidation-of-currentuserprofile",
+      "title": "Ensure the authenticated header/avatar UI correctly reflects profile photo removal by re-rendering the fallback avatar when `profileImage` is `null` and by updating promptly after the remove-photo action completes (via existing React Query invalidation of `currentUserProfile`).",
+      "reqIds": [
+        "REQ-27"
       ],
       "version": 1
     }
@@ -313,6 +329,20 @@
       "id": "AR-25",
       "summary": "Add user avatar support (avatar currently not being added/applied as expected)",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Allow users to remove/delete their profile photo (avatar) from the Profile page and persist the removal",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Ensure the backend persists profile photo removal: when updating the caller profile, a `null`/`none` `profileImage` value must clear the stored profile image for that user, and all profile reads (`getCallerUserProfile`/`getUserProfile`) must return `profileImage = null` afterward.",
+      "reqIds": [
+        "REQ-26"
+      ],
       "status": "pending"
     }
   ],

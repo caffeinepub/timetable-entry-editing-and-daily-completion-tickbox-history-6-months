@@ -1,77 +1,38 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix level progression UI logic and avatar persistence/display",
+  "title": "Profile avatar removal UI and immediate fallback rendering",
   "requirements": [
     {
-      "id": "REQ-23",
-      "summary": "Make level progression UI and upgrade flow consistent with backend-reported rules, including max-level handling, affordability gating, and post-upgrade refresh.",
+      "id": "REQ-25",
+      "summary": "Add a confirmed “Remove Photo” action on the Profile page that sets profileImage to null via the existing update flow, immediately falling back to the default avatar and clearing any local preview/file state.",
       "acceptanceCriteria": [
-        "When a user is at Level 1 - Noob 🫠, the next stage shown is Level 1 - Beginner 📈 with requiredCoins = 50.",
-        "When a user is at Level 1 - Beginner 📈, the next stage shown is Level 1 - Advanced Student 💪🏻 (level number must remain 1), with requiredCoins = 50.",
-        "When a user is at Level 1 - Sigma Student 🗿, the next stage shown is Level 2 - Noob 🫠, with requiredCoins = 50.",
-        "For any stage that is not the final stage (Level 50 - Sigma Student 🗿), the frontend shows a valid “Next Level” block and an enabled Upgrade button only when the backend reports the user has enough coins.",
-        "At the final stage (Level 50 - Sigma Student 🗿), the frontend shows the max-level state and does not show an upgrade action; backend purchase calls at max level return a clear error that the frontend maps to a user-facing message.",
-        "After a successful upgrade purchase, the coin balance and level status refresh automatically (React Query invalidation works), and the UI reflects the new current stage without requiring a page reload."
+        "When a user has an existing profile photo, the Profile page shows a visible action to remove it while in edit mode (or otherwise clearly accessible).",
+        "When the user confirms removal, the frontend calls the existing profile update flow with `profileImage = null` and keeps the current bio unchanged unless the user edits it.",
+        "After successful removal, the Profile page no longer renders an `AvatarImage` for the user and shows the fallback initial instead.",
+        "After a normal page reload and/or logout + login, the profile photo remains removed (still fallback initial).",
+        "Any temporary local preview URL and selected file state are cleared when removal succeeds or when the user cancels editing."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Refactor the Level Progression card to strictly render the \"Current\" and \"Next\" stages from the backend LevelStatus, gate the Upgrade button only by levelStatus.hasEnoughCoins (and pending state), and compute coin-related UI (e.g., \"need X more coins\") using levelStatus.userCoins to avoid mismatches with separately-fetched balances. Update max-level detection to be robust and driven by the backend-reported stage (Level 50 + Sigma Student), and ensure max-level hides upgrade actions. Use existing shadcn-ui components already imported (Card, Button, Badge, Avatar, Dialog, etc.) without modifying any ui components. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Harden the React Query hooks for level status and purchase so UI always re-renders with fresh data after an upgrade: ensure purchaseNextLevelStage success invalidates/refetches the levelStatus and coin-related queries used by ProfileSection (keep invalidations consistent and avoid stale reads). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/utils/backendErrorMessage.ts",
-          "operation": "create",
-          "description": "Add a small utility to map backend errors into safe English user-facing messages (e.g., max-level / insufficient coins / generic failure), so raw trap text is not shown directly and logic doesn't depend on fragile string fragments scattered across UI."
-        },
-        {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Use the new backend error-mapping utility when handling purchaseNextLevelStage failures, ensuring max-level and insufficient-coin cases show clear English messages and other errors fall back to a generic message."
+          "description": "Implement a remove-avatar flow in edit mode: add a clearly visible \"Remove Photo\" button when a profile image exists (or a new preview is selected), show a confirmation dialog, and on confirm call the existing profile update mutation with profileImage = null while preserving the current bio value. On success, immediately clear selectedFile and any previewUrl (revoking the object URL), exit edit mode as appropriate, and ensure the AvatarImage is not rendered so the AvatarFallback (initial) shows. Also ensure cancel editing clears preview/file state. Use existing shadcn-ui primitives already in the file (e.g., Button, Dialog, Avatar); verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-24",
-      "summary": "Fix profile avatar upload so it persists via backend profile image storage and reliably displays across Profile and Header, with fallback and friendly error handling.",
+      "id": "REQ-27",
+      "summary": "Ensure the authenticated Header avatar immediately reflects profile photo removal by rendering the fallback when profileImage is null and reliably re-rendering after currentUserProfile invalidation.",
       "acceptanceCriteria": [
-        "From the Profile page, selecting an image and saving the profile results in the new image being stored on the backend and returned in getCallerUserProfile().",
-        "After saving, the avatar immediately updates in the Profile UI (AvatarImage shows the newly uploaded image).",
-        "After a full page reload, the avatar still displays correctly from the stored profile image.",
-        "If the user has no avatar, the UI shows a sensible fallback (e.g., first letter of the name) and does not show broken-image UI.",
-        "Any errors during avatar upload/save produce an English user-facing error message (no raw Motoko trap text shown directly)."
+        "After removing the profile photo, the Header avatar no longer shows the old image and instead shows the fallback avatar without requiring a hard refresh.",
+        "The Header continues to display the profile image when `profileImage` is present, unchanged from current behavior."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Replace the current dataURL->fetch->blob conversion flow with a more reliable file-based flow: keep the selected File in state, generate a local preview via URL.createObjectURL for immediate display during editing, and on save convert the File to bytes and upload via the blob-storage ExternalBlob API (ExternalBlob.fromBytes(...), optionally withUploadProgress for UX). Ensure object URLs are revoked to avoid leaks and that cancel resets the preview/file state. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Ensure avatar rendering never shows a broken image: keep AvatarFallback as the default when no stored profile image exists, and guard AvatarImage src so empty/undefined values do not produce broken-image UI. Continue composing existing shadcn-ui Avatar/AvatarImage/AvatarFallback components without modifying ui internals. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Ensure the profile update mutation invalidates the current user profile query so avatar updates immediately after saving, and confirm that logout/login flows clear cached data so the stored avatar is refetched and displayed after reload or re-auth. Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Confirm Header avatar always uses the stored profile image direct URL when available and otherwise shows a fallback initial; ensure it updates after profile mutation via React Query invalidation and remains stable after queryClient.clear on logout. Continue using existing shadcn-ui Avatar and DropdownMenu components without modifying ui internals. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Route all avatar upload/save errors through the shared backend error-mapping utility (or a profile-specific wrapper) to guarantee English user-facing messages and avoid showing raw Motoko trap strings. Verify the component's usage instructions before implementing."
+          "description": "Harden Header avatar rendering against stale images: derive avatarSrc only when profile.profileImage is present, and ensure AvatarImage unmounts/reloads when avatarSrc changes (e.g., by keying AvatarImage/Avatar on avatarSrc). Confirm it correctly falls back to AvatarFallback when avatarSrc is empty after React Query invalidates ['currentUserProfile']. Uses existing shadcn-ui Avatar/DropdownMenu components; verify the component's usage instructions before implementing."
         }
       ]
     }

@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-level-system-end-to-end-so-level-progression-has-no-glitch-the-current-stage-next-stage-max-level-detection-coin-costs-and-upgrade-flow-must-consistently-follow-the-intended-rules-level-number-stays-the-same-across-the-5-ranks-before-incrementing-level-1-noob-is-free-every-paid-upgrade-costs-50-coins-users-can-only-purchase-the-immediate-next-stage-max-level-is-level-50-sigma-student",
-      "featureTitle": "Fix the Level system end-to-end so level progression has no glitch: the current stage, next stage, max-level detection, coin costs, and upgrade flow must consistently follow the intended rules (Level number stays the same across the 5 ranks before incrementing; Level 1 - Noob is free; every paid upgrade costs 50 coins; users can only purchase the immediate next stage; max level is Level 50 - Sigma Student 🗿).",
+      "featureId": "feature-add-support-for-removing-a-user-s-profile-photo-avatar-from-the-profile-page-by-providing-a-clear-ui-action-e-g-remove-photo-that-when-confirmed-updates-the-user-profile-so-that-profileimage-becomes-null-and-the-ui-immediately-falls-back-to-the-default-avatar-fallback-initial-letter",
+      "featureTitle": "Add support for removing a user’s profile photo (avatar) from the Profile page by providing a clear UI action (e.g., “Remove Photo”) that, when confirmed, updates the user profile so that `profileImage` becomes `null` and the UI immediately falls back to the default avatar fallback (initial letter).",
       "files": [
-        "frontend/src/components/ProfileSection.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/utils/backendErrorMessage.ts"
+        "frontend/src/components/ProfileSection.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -21,17 +19,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-23"
+        "REQ-25"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-fix-user-avatar-support-so-uploading-a-profile-photo-from-the-profile-page-persists-to-the-backend-and-reliably-renders-as-the-user-s-avatar-including-after-reload-log-out-log-in",
-      "featureTitle": "Add/fix user avatar support so uploading a profile photo from the Profile page persists to the backend and reliably renders as the user’s avatar (including after reload/log out + log in).",
+      "featureId": "feature-ensure-the-authenticated-header-avatar-ui-correctly-reflects-profile-photo-removal-by-re-rendering-the-fallback-avatar-when-profileimage-is-null-and-by-updating-promptly-after-the-remove-photo-action-completes-via-existing-react-query-invalidation-of-currentuserprofile",
+      "featureTitle": "Ensure the authenticated header/avatar UI correctly reflects profile photo removal by re-rendering the fallback avatar when `profileImage` is `null` and by updating promptly after the remove-photo action completes (via existing React Query invalidation of `currentUserProfile`).",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/ProfileSection.tsx",
-        "frontend/src/hooks/useQueries.ts"
+        "frontend/src/components/Header.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -45,7 +41,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-24"
+        "REQ-27"
       ],
       "confidence": "high"
     }

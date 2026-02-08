@@ -1,57 +1,33 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T07:13:30.542Z",
-  "summary": "Diff adds a migration stub, a frontend backend-error-to-English-message mapper, and updates Header/Profile UI and React Query invalidations. However, the diff summary does not provide enough evidence that the backend Level progression rules and avatar persistence are correctly implemented end-to-end; several core REQ-23/REQ-24 behaviors cannot be verified from the shown changes. There are also unrequested branding changes (\"Scholar Gold\" and new logo usage) evident in the frontend modifications.",
+  "generatedAt": "2026-02-08T07:21:37.356Z",
+  "summary": "Diff shows frontend changes in Header and ProfileSection that appear related to avatar display and a remove-photo dialog, but key parts of the remove flow and backend persistence cannot be verified from the provided truncated diff. Backend changes do not include visible logic to clear/persist `profileImage = null`.",
   "missing_requirements": [
     {
-      "id": "REQ-23",
-      "requirement": "Fix the Level system end-to-end so progression has no glitch (5 ranks per level number, Level 1 Noob free, paid upgrades cost 50, only immediate next stage purchasable, max Level 50 Sigma Student), including backend rules + frontend max-level/upgrade enablement and refresh after purchase.",
-      "reason": "The diff summary does not show any concrete backend implementation for computing current/next level stages, enforcing sequential purchase, coin cost rules, or returning a clear max-level error. backend/main.mo is truncated before any level functions/state are shown, so the required logic changes cannot be confirmed.",
+      "id": "REQ-25",
+      "requirement": "Add support for removing a user’s profile photo from the Profile page with a clear UI action + confirmation, update profile with `profileImage = null`, immediately fall back to default avatar, clear local preview/selected file state on success or cancel, and persist after reload.",
+      "reason": "ProfileSection shows state for a remove-photo dialog (`showRemovePhotoDialog`) and edit cancel cleanup for preview/selected file, but the diff is truncated before any confirmed UI action wiring and before any mutation call that sets `profileImage` to null; also no evidence is shown that AvatarImage is conditionally not rendered after successful removal on the Profile page.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/components/ProfileSection.tsx (truncated)",
-        "frontend/src/hooks/useQueries.ts (truncated)"
+        "frontend/src/components/ProfileSection.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-24",
-      "requirement": "Add/fix user avatar support so uploading a profile photo persists to the backend and reliably renders after reload/log out + log in, with fallback and English error messages.",
-      "reason": "Frontend shows avatar rendering from profile.profileImage.getDirectURL() and a save flow that converts a File to ExternalBlob, but the diff summary provides no evidence that backend updateCallerProfile/getCallerUserProfile persist and return the image across sessions/reloads. Also the ProfileSection error-handling code is truncated mid-line, so the final user-facing error behavior cannot be verified.",
+      "id": "REQ-26",
+      "requirement": "Backend must persist profile photo removal: updating caller profile with `profileImage = null/none` clears stored image; subsequent profile reads return `profileImage = null`; no other fields changed as side effect.",
+      "reason": "backend/main.mo changes shown only include type definitions and surrounding context; no evidence is present of update logic handling `null/none` to clear the stored profile image, nor of read methods returning null afterward.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/ProfileSection.tsx (truncated)",
-        "frontend/src/hooks/useQueries.ts (truncated)"
+        "backend/main.mo (truncated)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "App branding changes to \"Scholar Gold\" and new logo usage in Header (and implied broader branding changes).",
-      "reason": "The BuildRequest is focused on Level progression and avatar persistence; it does not request renaming/rebranding or changing header branding assets/text.",
-      "evidence": [
-        "frontend/src/components/Header.tsx"
-      ]
-    },
-    {
-      "description": "Added backend/migration.mo with a no-op migration run(old)=old.",
-      "reason": "BuildRequest allows introducing backend/migration.mo only if required to preserve existing stable state; the diff shows a migration module added but provides no evidence that a state migration was necessary or that any state shape changed requiring it.",
-      "evidence": [
-        "backend/migration.mo",
-        "backend/main.mo (with migration = Migration.run)"
-      ]
-    }
-  ],
+  "hallucinated_features": [],
   "confidence": 0.62,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/Header.tsx",
     "frontend/src/components/ProfileSection.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/utils/backendErrorMessage.ts",
     "project_state.json"
   ]
 }

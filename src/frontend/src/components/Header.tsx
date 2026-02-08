@@ -62,8 +62,8 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 gap-2 rounded-full px-3">
-                  <Avatar className="h-8 w-8">
-                    {avatarSrc && <AvatarImage src={avatarSrc} alt={profile.name} />}
+                  <Avatar className="h-8 w-8" key={avatarSrc || 'no-image'}>
+                    {avatarSrc && <AvatarImage src={avatarSrc} alt={profile.name} key={avatarSrc} />}
                     <AvatarFallback>
                       {profile.name.charAt(0).toUpperCase()}
                     </AvatarFallback>

@@ -1,59 +1,71 @@
 {
   "kind": "build_request",
-  "title": "Rebuild Level system logic to eliminate progression glitch and fix user avatar persistence/display",
+  "title": "Allow users to remove their profile photo (avatar) and persist removal",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-23",
-      "text": "Fix the Level system end-to-end so level progression has no glitch: the current stage, next stage, max-level detection, coin costs, and upgrade flow must consistently follow the intended rules (Level number stays the same across the 5 ranks before incrementing; Level 1 - Noob is free; every paid upgrade costs 50 coins; users can only purchase the immediate next stage; max level is Level 50 - Sigma Student 🗿).",
-      "target": "both",
+      "id": "REQ-25",
+      "text": "Add support for removing a user’s profile photo (avatar) from the Profile page by providing a clear UI action (e.g., “Remove Photo”) that, when confirmed, updates the user profile so that `profileImage` becomes `null` and the UI immediately falls back to the default avatar fallback (initial letter).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-3"
+          "recent-messages-4"
         ],
         "quotes": [
-          "Still level glitch is not fixed, remove it and add again."
+          "Also add we can remove photos I mean profile photos"
         ]
       },
       "acceptanceCriteria": [
-        "When a user is at Level 1 - Noob 🫠, the next stage shown is Level 1 - Beginner 📈 with requiredCoins = 50.",
-        "When a user is at Level 1 - Beginner 📈, the next stage shown is Level 1 - Advanced Student 💪🏻 (level number must remain 1), with requiredCoins = 50.",
-        "When a user is at Level 1 - Sigma Student 🗿, the next stage shown is Level 2 - Noob 🫠, with requiredCoins = 50.",
-        "For any stage that is not the final stage (Level 50 - Sigma Student 🗿), the frontend shows a valid “Next Level” block and an enabled Upgrade button only when the backend reports the user has enough coins.",
-        "At the final stage (Level 50 - Sigma Student 🗿), the frontend shows the max-level state and does not show an upgrade action; backend purchase calls at max level return a clear error that the frontend maps to a user-facing message.",
-        "After a successful upgrade purchase, the coin balance and level status refresh automatically (React Query invalidation works), and the UI reflects the new current stage without requiring a page reload."
+        "When a user has an existing profile photo, the Profile page shows a visible action to remove it while in edit mode (or otherwise clearly accessible).",
+        "When the user confirms removal, the frontend calls the existing profile update flow with `profileImage = null` and keeps the current bio unchanged unless the user edits it.",
+        "After successful removal, the Profile page no longer renders an `AvatarImage` for the user and shows the fallback initial instead.",
+        "After a normal page reload and/or logout + login, the profile photo remains removed (still fallback initial).",
+        "Any temporary local preview URL and selected file state are cleared when removal succeeds or when the user cancels editing."
       ]
     },
     {
-      "id": "REQ-24",
-      "text": "Add/fix user avatar support so uploading a profile photo from the Profile page persists to the backend and reliably renders as the user’s avatar (including after reload/log out + log in).",
-      "target": "both",
+      "id": "REQ-26",
+      "text": "Ensure the backend persists profile photo removal: when updating the caller profile, a `null`/`none` `profileImage` value must clear the stored profile image for that user, and all profile reads (`getCallerUserProfile`/`getUserProfile`) must return `profileImage = null` afterward.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages-3"
+          "recent-messages-4"
         ],
         "quotes": [
-          "Also the avatar not added"
+          "Also add we can remove photos I mean profile photos"
         ]
       },
       "acceptanceCriteria": [
-        "From the Profile page, selecting an image and saving the profile results in the new image being stored on the backend and returned in getCallerUserProfile().",
-        "After saving, the avatar immediately updates in the Profile UI (AvatarImage shows the newly uploaded image).",
-        "After a full page reload, the avatar still displays correctly from the stored profile image.",
-        "If the user has no avatar, the UI shows a sensible fallback (e.g., first letter of the name) and does not show broken-image UI.",
-        "Any errors during avatar upload/save produce an English user-facing error message (no raw Motoko trap text shown directly)."
+        "Calling the backend profile update method with `profileImage = null` clears the stored profile image for that caller.",
+        "Subsequent calls to fetch the caller’s profile return `profileImage = null`.",
+        "No other profile fields (name, coins, nameChangeCount, finishedSetup, bio) are altered as a side effect of removing the profile image (except any explicitly updated fields included in the same request)."
+      ]
+    },
+    {
+      "id": "REQ-27",
+      "text": "Ensure the authenticated header/avatar UI correctly reflects profile photo removal by re-rendering the fallback avatar when `profileImage` is `null` and by updating promptly after the remove-photo action completes (via existing React Query invalidation of `currentUserProfile`).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-4"
+        ],
+        "quotes": [
+          "Also add we can remove photos I mean profile photos"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After removing the profile photo, the Header avatar no longer shows the old image and instead shows the fallback avatar without requiring a hard refresh.",
+        "The Header continues to display the profile image when `profileImage` is present, unchanged from current behavior."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only introduce backend/migration.mo changes if required for preserving existing stable state.",
-    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths; compose existing UI components instead.",
-    "Use English for all user-facing text."
+    "Do not edit files under frontend/src/components/ui (compose existing UI components instead).",
+    "Do not edit files under the frontend immutablePaths list (e.g., useActor/useInternetIdentity/main entrypoints)."
   ],
   "nonGoals": [
-    "Adding new authentication providers beyond Internet Identity.",
-    "Introducing external databases, third-party storage, or additional backend services.",
-    "Redesigning unrelated parts of the app (tasks, notes, reminders, timetable) beyond what is necessary to fix Level and avatar behavior."
+    "Do not add removal for background images or note attachments; this change applies only to the user profile photo/avatar.",
+    "Do not introduce third-party image hosting or external databases; persist removal using existing backend storage/profile mechanisms."
   ],
   "imageRequirements": {
     "required": [],

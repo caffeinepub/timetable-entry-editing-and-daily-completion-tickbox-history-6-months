@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Coins, Edit2, Upload, Flame, TrendingUp, Lock, Unlock } from 'lucide-react';
+import { Coins, Edit2, Upload, Flame, TrendingUp, Lock, Unlock, Trash2 } from 'lucide-react';
 import { useGetCallerUserProfile, useUpdateCallerProfile, useChangeDisplayName, useGetStudyStreak, useGetCurrentAndNextLevelStage, usePurchaseNextLevelStage } from '../hooks/useQueries';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ import { ExternalBlob as ExternalBlobClass } from '../backend';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { mapBackendError } from '../utils/backendErrorMessage';
 
@@ -29,6 +30,7 @@ export function ProfileSection() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showNameDialog, setShowNameDialog] = useState(false);
+  const [showRemovePhotoDialog, setShowRemovePhotoDialog] = useState(false);
   const [newName, setNewName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -121,6 +123,26 @@ export function ProfileSection() {
     }
   };
 
+  const handleRemovePhoto = async () => {
+    try {
+      await updateProfileMutation.mutateAsync({
+        profileImage: null,
+        bio: profile.bio,
+      });
+
+      toast.success('Profile photo removed successfully!');
+      setShowRemovePhotoDialog(false);
+      setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl('');
+      }
+    } catch (error) {
+      const errorMessage = mapBackendError(error);
+      toast.error(errorMessage);
+    }
+  };
+
   const handleImageUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
@@ -201,6 +223,7 @@ export function ProfileSection() {
   };
 
   const avatarSrc = getAvatarSrc();
+  const hasProfileImage = profile.profileImage || selectedFile;
 
   return (
     <>
@@ -220,7 +243,7 @@ export function ProfileSection() {
               </Avatar>
               
               {isEditing && (
-                <>
+                <div className="flex flex-col gap-2 w-full items-center">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -236,7 +259,19 @@ export function ProfileSection() {
                     <Upload className="mr-2 h-4 w-4" />
                     Upload Photo
                   </Button>
-                </>
+                  
+                  {hasProfileImage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowRemovePhotoDialog(true)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Photo
+                    </Button>
+                  )}
+                </div>
               )}
 
               <div className="text-center">
@@ -475,11 +510,12 @@ export function ProfileSection() {
               )}
             </div>
           ) : (
-            <div className="text-center text-muted-foreground">Unable to load level status</div>
+            <div className="text-center text-muted-foreground">No level data available</div>
           )}
         </CardContent>
       </Card>
 
+      {/* Name Change Dialog */}
       <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
         <DialogContent>
           <DialogHeader>
@@ -514,6 +550,28 @@ export function ProfileSection() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Remove Photo Confirmation Dialog */}
+      <AlertDialog open={showRemovePhotoDialog} onOpenChange={setShowRemovePhotoDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Profile Photo</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove your profile photo? Your profile will display your initial instead.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemovePhoto}
+              disabled={updateProfileMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {updateProfileMutation.isPending ? 'Removing...' : 'Remove Photo'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
