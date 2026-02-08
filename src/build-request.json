@@ -1,80 +1,62 @@
 {
   "kind": "build_request",
-  "title": "Rename app to “Scholar Gold” and set app icon/logo from provided image",
+  "title": "Rebuild Level system logic to eliminate progression glitch and fix user avatar persistence/display",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-10",
-      "text": "Rename all user-facing app name text to “Scholar Gold” across the UI, including: the browser tab title, the authenticated landing header/title section, the Login screen brand name, and the top navigation header brand label.",
-      "target": "frontend",
+      "id": "REQ-23",
+      "text": "Fix the Level system end-to-end so level progression has no glitch: the current stage, next stage, max-level detection, coin costs, and upgrade flow must consistently follow the intended rules (Level number stays the same across the 5 ranks before incrementing; Level 1 - Noob is free; every paid upgrade costs 50 coins; users can only purchase the immediate next stage; max level is Level 50 - Sigma Student 🗿).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-rename-scholar-gold"
+          "recent-messages-3"
         ],
         "quotes": [
-          "rename the app as 'Scholar Gold'"
+          "Still level glitch is not fixed, remove it and add again."
         ]
       },
       "acceptanceCriteria": [
-        "Browser tab/title displays “Scholar Gold”.",
-        "Login screen brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
-        "Top header brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
-        "Authenticated home/hero title displays “Scholar Gold” (replacing “Exam Prep Hub”)."
+        "When a user is at Level 1 - Noob 🫠, the next stage shown is Level 1 - Beginner 📈 with requiredCoins = 50.",
+        "When a user is at Level 1 - Beginner 📈, the next stage shown is Level 1 - Advanced Student 💪🏻 (level number must remain 1), with requiredCoins = 50.",
+        "When a user is at Level 1 - Sigma Student 🗿, the next stage shown is Level 2 - Noob 🫠, with requiredCoins = 50.",
+        "For any stage that is not the final stage (Level 50 - Sigma Student 🗿), the frontend shows a valid “Next Level” block and an enabled Upgrade button only when the backend reports the user has enough coins.",
+        "At the final stage (Level 50 - Sigma Student 🗿), the frontend shows the max-level state and does not show an upgrade action; backend purchase calls at max level return a clear error that the frontend maps to a user-facing message.",
+        "After a successful upgrade purchase, the coin balance and level status refresh automatically (React Query invalidation works), and the UI reflects the new current stage without requiring a page reload."
       ]
     },
     {
-      "id": "REQ-11",
-      "text": "Replace the app’s brand mark (currently the GraduationCap icon in the header/login) with a static image logo derived from the user-provided “Scholar Gold” image, and ensure it renders crisply in light/dark themes.",
-      "target": "frontend",
+      "id": "REQ-24",
+      "text": "Add/fix user avatar support so uploading a profile photo from the Profile page persists to the backend and reliably renders as the user’s avatar (including after reload/log out + log in).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-rename-scholar-gold"
+          "recent-messages-3"
         ],
         "quotes": [
-          "make the app photo as this"
+          "Also the avatar not added"
         ]
       },
       "acceptanceCriteria": [
-        "Header brand mark uses an image (not the GraduationCap icon).",
-        "Login screen brand mark uses the same image.",
-        "Logo image scales correctly and does not appear stretched or pixelated at typical sizes (e.g., 40x40)."
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "text": "Set the application favicon/app icon to the provided “Scholar Gold” logo image by adding the necessary icon links in the HTML entry point and placing the generated icon assets in the frontend public assets folder.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-rename-scholar-gold"
-        ],
-        "quotes": [
-          "make the app photo as this"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A favicon is configured and visible in the browser tab.",
-        "Icon assets are served as static files from the frontend (no backend routing).",
-        "The configured icon files exist under frontend/public/assets/generated and are referenced from the HTML entry point."
+        "From the Profile page, selecting an image and saving the profile results in the new image being stored on the backend and returned in getCallerUserProfile().",
+        "After saving, the avatar immediately updates in the Profile UI (AvatarImage shows the newly uploaded image).",
+        "After a full page reload, the avatar still displays correctly from the stored profile image.",
+        "If the user has no avatar, the UI shows a sensible fallback (e.g., first letter of the name) and does not show broken-image UI.",
+        "Any errors during avatar upload/save produce an English user-facing error message (no raw Motoko trap text shown directly)."
       ]
     }
   ],
   "constraints": [
-    "Backend remains single-actor; no backend changes are required for app renaming/icon updates.",
-    "Do not edit files under frontend/src/components/ui or other immutablePaths; compose existing UI components instead.",
-    "Use English for any user-facing text."
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only introduce backend/migration.mo changes if required for preserving existing stable state.",
+    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths; compose existing UI components instead.",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Changing coin, timetable, streak, or other application logic.",
-    "Adding third-party authentication beyond Internet Identity.",
-    "Introducing new backend storage or migrations for branding changes."
+    "Adding new authentication providers beyond Internet Identity.",
+    "Introducing external databases, third-party storage, or additional backend services.",
+    "Redesigning unrelated parts of the app (tasks, notes, reminders, timetable) beyond what is necessary to fix Level and avatar behavior."
   ],
   "imageRequirements": {
-    "required": [
-      "Square app icon crop based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_512x512.png)",
-      "App icon for PWA/large usage based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_192x192.png)",
-      "Favicon based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-favicon.dim_32x32.png)"
-    ],
+    "required": [],
     "edits": []
   },
   "userProfileUpdate": {

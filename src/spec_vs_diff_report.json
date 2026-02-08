@@ -1,35 +1,57 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T13:17:29.828Z",
-  "summary": "REQ-10 and REQ-11 appear implemented via UI text updates to “Scholar Gold” and replacing the header/login brand mark with an <img> logo. REQ-12 is only partially implemented: index.html references the generated icons, but the diff shows no new static asset files added under frontend/public/assets/generated.",
+  "generatedAt": "2026-02-08T07:13:30.542Z",
+  "summary": "Diff adds a migration stub, a frontend backend-error-to-English-message mapper, and updates Header/Profile UI and React Query invalidations. However, the diff summary does not provide enough evidence that the backend Level progression rules and avatar persistence are correctly implemented end-to-end; several core REQ-23/REQ-24 behaviors cannot be verified from the shown changes. There are also unrequested branding changes (\"Scholar Gold\" and new logo usage) evident in the frontend modifications.",
   "missing_requirements": [
     {
-      "id": "REQ-12",
-      "requirement": "Place the generated icon assets under frontend/public/assets/generated and reference them from the HTML entry point (favicon/app icons served as static files).",
-      "reason": "The HTML entry point was updated to reference icon files, but the diff shows no added files, so there is no evidence the required generated icon assets were actually added under frontend/public/assets/generated.",
+      "id": "REQ-23",
+      "requirement": "Fix the Level system end-to-end so progression has no glitch (5 ranks per level number, Level 1 Noob free, paid upgrades cost 50, only immediate next stage purchasable, max Level 50 Sigma Student), including backend rules + frontend max-level/upgrade enablement and refresh after purchase.",
+      "reason": "The diff summary does not show any concrete backend implementation for computing current/next level stages, enforcing sequential purchase, coin cost rules, or returning a clear max-level error. backend/main.mo is truncated before any level functions/state are shown, so the required logic changes cannot be confirmed.",
       "evidence": [
-        "frontend/index.html",
-        "<file-diff> Added: 0 (no added files shown)"
+        "backend/main.mo (truncated)",
+        "frontend/src/components/ProfileSection.tsx (truncated)",
+        "frontend/src/hooks/useQueries.ts (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-24",
+      "requirement": "Add/fix user avatar support so uploading a profile photo persists to the backend and reliably renders after reload/log out + log in, with fallback and English error messages.",
+      "reason": "Frontend shows avatar rendering from profile.profileImage.getDirectURL() and a save flow that converts a File to ExternalBlob, but the diff summary provides no evidence that backend updateCallerProfile/getCallerUserProfile persist and return the image across sessions/reloads. Also the ProfileSection error-handling code is truncated mid-line, so the final user-facing error behavior cannot be verified.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/ProfileSection.tsx (truncated)",
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Modified/maintained project_state.json content describing unrelated roadmap items and a statement about ensuring the app is not renamed.",
-      "reason": "The BuildRequest is specifically about renaming the app to “Scholar Gold” and setting icons/logos; updating project_state.json with unrelated feature planning text (including the contradictory note about not renaming) was not requested.",
+      "description": "App branding changes to \"Scholar Gold\" and new logo usage in Header (and implied broader branding changes).",
+      "reason": "The BuildRequest is focused on Level progression and avatar persistence; it does not request renaming/rebranding or changing header branding assets/text.",
       "evidence": [
-        "project_state.json"
+        "frontend/src/components/Header.tsx"
+      ]
+    },
+    {
+      "description": "Added backend/migration.mo with a no-op migration run(old)=old.",
+      "reason": "BuildRequest allows introducing backend/migration.mo only if required to preserve existing stable state; the diff shows a migration module added but provides no evidence that a state migration was necessary or that any state shape changed requiring it.",
+      "evidence": [
+        "backend/migration.mo",
+        "backend/main.mo (with migration = Migration.run)"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.html",
-    "frontend/src/App.tsx",
     "frontend/src/components/Header.tsx",
-    "frontend/src/components/LoginScreen.tsx",
+    "frontend/src/components/ProfileSection.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/utils/backendErrorMessage.ts",
     "project_state.json"
   ]
 }

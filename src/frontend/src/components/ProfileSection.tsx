@@ -4,32 +4,44 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Coins, Edit2, Upload, Flame } from 'lucide-react';
-import { useGetCallerUserProfile, useUpdateCallerProfile, useChangeDisplayName, useGetCoinBalance, useGetStudyStreak } from '../hooks/useQueries';
-import { useState, useRef } from 'react';
+import { Coins, Edit2, Upload, Flame, TrendingUp, Lock, Unlock } from 'lucide-react';
+import { useGetCallerUserProfile, useUpdateCallerProfile, useChangeDisplayName, useGetStudyStreak, useGetCurrentAndNextLevelStage, usePurchaseNextLevelStage } from '../hooks/useQueries';
+import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { ExternalBlob as ExternalBlobClass } from '../backend';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { mapBackendError } from '../utils/backendErrorMessage';
 
 export function ProfileSection() {
   const { identity } = useInternetIdentity();
   const { data: profile, isLoading } = useGetCallerUserProfile();
-  const { data: coinBalance } = useGetCoinBalance();
   const { data: studyStreak } = useGetStudyStreak();
+  const { data: levelStatus, isLoading: levelLoading } = useGetCurrentAndNextLevelStage();
   const updateProfileMutation = useUpdateCallerProfile();
   const changeNameMutation = useChangeDisplayName();
+  const purchaseLevelMutation = usePurchaseNextLevelStage();
   
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState('');
-  const [profileImageUrl, setProfileImageUrl] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [showNameDialog, setShowNameDialog] = useState(false);
   const [newName, setNewName] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isAuthenticated = !!identity;
+
+  // Cleanup preview URL on unmount or when canceling
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   if (!isAuthenticated) {
     return (
@@ -66,11 +78,16 @@ export function ProfileSection() {
 
   const handleEditToggle = () => {
     if (isEditing) {
+      // Cancel editing - cleanup
       setBio('');
-      setProfileImageUrl('');
+      setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl('');
+      }
     } else {
+      // Start editing
       setBio(profile.bio);
-      setProfileImageUrl(profile.profileImage?.getDirectURL() || '');
     }
     setIsEditing(!isEditing);
   };
@@ -79,11 +96,9 @@ export function ProfileSection() {
     try {
       let imageBlob = profile.profileImage || null;
       
-      if (profileImageUrl && profileImageUrl !== profile.profileImage?.getDirectURL()) {
-        // New image uploaded
-        const response = await fetch(profileImageUrl);
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
+      if (selectedFile) {
+        // Convert file to bytes and upload
+        const arrayBuffer = await selectedFile.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
         imageBlob = ExternalBlobClass.fromBytes(uint8Array);
       }
@@ -95,8 +110,14 @@ export function ProfileSection() {
 
       toast.success('Profile updated successfully!');
       setIsEditing(false);
+      setSelectedFile(null);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl('');
+      }
     } catch (error) {
-      toast.error('Failed to update profile');
+      const errorMessage = mapBackendError(error);
+      toast.error(errorMessage);
     }
   };
 
@@ -110,11 +131,15 @@ export function ProfileSection() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setProfileImageUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Cleanup old preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    // Create new preview URL
+    const newPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl(newPreviewUrl);
+    setSelectedFile(file);
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -126,7 +151,7 @@ export function ProfileSection() {
     }
 
     const nameCost = Number(profile.nameChangeCount) === 0 ? 0 : 50;
-    const currentCoins = coinBalance ? Number(coinBalance) : Number(profile.coins);
+    const currentCoins = Number(profile.coins);
 
     if (currentCoins < nameCost) {
       toast.error(`Insufficient coins. You need ${nameCost} coins to change your name.`);
@@ -139,13 +164,43 @@ export function ProfileSection() {
       setShowNameDialog(false);
       setNewName('');
     } catch (error) {
-      toast.error('Failed to change name');
+      const errorMessage = mapBackendError(error);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleLevelUpgrade = async () => {
+    if (!levelStatus) return;
+
+    try {
+      const result = await purchaseLevelMutation.mutateAsync();
+      toast.success(`Level upgraded to ${result.currentStage.displayText}!`);
+    } catch (error) {
+      const errorMessage = mapBackendError(error);
+      toast.error(errorMessage);
     }
   };
 
   const nameCost = Number(profile.nameChangeCount) === 0 ? 0 : 50;
-  const currentCoins = coinBalance ? Number(coinBalance) : Number(profile.coins);
+  const currentCoins = Number(profile.coins);
   const currentStreak = studyStreak ? Number(studyStreak) : 0;
+
+  // Detect max level: Level 50 - Sigma Student 🗿
+  const isMaxLevel = levelStatus && 
+    Number(levelStatus.currentStage.level) === 50 && 
+    levelStatus.currentStage.rank === 'Sigma Student 🗿';
+  
+  const canAffordUpgrade = levelStatus && levelStatus.hasEnoughCoins;
+
+  // Determine which image to show
+  const getAvatarSrc = () => {
+    if (isEditing && previewUrl) {
+      return previewUrl;
+    }
+    return profile.profileImage?.getDirectURL() || '';
+  };
+
+  const avatarSrc = getAvatarSrc();
 
   return (
     <>
@@ -158,10 +213,7 @@ export function ProfileSection() {
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-32 w-32">
-                <AvatarImage 
-                  src={isEditing ? profileImageUrl : profile.profileImage?.getDirectURL()} 
-                  alt={profile.name} 
-                />
+                {avatarSrc && <AvatarImage src={avatarSrc} alt={profile.name} />}
                 <AvatarFallback className="text-3xl">
                   {profile.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -309,32 +361,145 @@ export function ProfileSection() {
         </Card>
       </div>
 
+      {/* Level System Card */}
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <CardTitle>Level Progression</CardTitle>
+          </div>
+          <CardDescription>Unlock new levels by spending coins</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {levelLoading ? (
+            <div className="text-center text-muted-foreground">Loading level status...</div>
+          ) : levelStatus ? (
+            <div className="space-y-6">
+              {/* Current Level */}
+              <div className="rounded-lg border-2 border-primary bg-primary/5 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
+                      <Unlock className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Current Level</p>
+                      <p className="text-2xl font-bold">{levelStatus.currentStage.displayText}</p>
+                    </div>
+                  </div>
+                  <Badge variant="default" className="text-lg px-4 py-2">
+                    Unlocked
+                  </Badge>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Next Level or Max Level */}
+              {!isMaxLevel ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg border bg-muted/30 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                          <Lock className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Next Level</p>
+                          <p className="text-2xl font-bold">{levelStatus.nextStage.displayText}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-muted-foreground">Cost</p>
+                        <div className="flex items-center gap-1">
+                          <Coins className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+                          <span className="text-xl font-bold">{Number(levelStatus.nextStage.requiredCoins)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upgrade Button */}
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      size="lg"
+                      className="w-full"
+                      onClick={handleLevelUpgrade}
+                      disabled={!canAffordUpgrade || purchaseLevelMutation.isPending}
+                    >
+                      {purchaseLevelMutation.isPending ? (
+                        'Upgrading...'
+                      ) : (
+                        <>
+                          <TrendingUp className="mr-2 h-5 w-5" />
+                          Upgrade to {levelStatus.nextStage.displayText}
+                        </>
+                      )}
+                    </Button>
+                    
+                    {!canAffordUpgrade && (
+                      <div className="rounded-lg bg-destructive/10 p-3 text-center text-sm text-destructive">
+                        Insufficient coins. You need {Number(levelStatus.nextStage.requiredCoins) - Number(levelStatus.userCoins)} more coins to upgrade.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Progress Info */}
+                  <div className="rounded-lg border bg-muted/20 p-4">
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Your Coins</p>
+                        <p className="text-2xl font-bold">{Number(levelStatus.userCoins)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Required</p>
+                        <p className="text-2xl font-bold">{Number(levelStatus.nextStage.requiredCoins)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-lg border-2 border-primary bg-primary/5 p-6 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
+                      <TrendingUp className="h-8 w-8 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">Max Level Reached!</p>
+                      <p className="text-muted-foreground mt-2">
+                        Congratulations! You've reached the highest level: {levelStatus.currentStage.displayText}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground">Unable to load level status</div>
+          )}
+        </CardContent>
+      </Card>
+
       <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Change Display Name</DialogTitle>
             <DialogDescription>
               {nameCost === 0 
-                ? 'Set your display name for free (first time only)'
-                : `Changing your name costs ${nameCost} coins. You have ${currentCoins} coins.`
-              }
+                ? 'First name change is free!' 
+                : `Changing your name costs ${nameCost} coins.`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="new-name">New Display Name</Label>
+              <Label htmlFor="newName">New Name</Label>
               <Input
-                id="new-name"
+                id="newName"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Enter your new name"
               />
             </div>
-            {nameCost > 0 && currentCoins < nameCost && (
-              <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                Insufficient coins. You need {nameCost - currentCoins} more coins.
-              </div>
-            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowNameDialog(false)}>
@@ -342,9 +507,9 @@ export function ProfileSection() {
             </Button>
             <Button 
               onClick={handleNameChange}
-              disabled={changeNameMutation.isPending || (nameCost > 0 && currentCoins < nameCost)}
+              disabled={changeNameMutation.isPending || !newName.trim()}
             >
-              {changeNameMutation.isPending ? 'Changing...' : nameCost === 0 ? 'Set Name' : `Change Name (${nameCost} coins)`}
+              {changeNameMutation.isPending ? 'Changing...' : 'Confirm Change'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -11,6 +11,18 @@ import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
 export type ExternalBlob = Uint8Array;
+export interface LevelStage {
+  'requiredCoins' : bigint,
+  'displayText' : string,
+  'rank' : string,
+  'level' : bigint,
+}
+export interface LevelStatus {
+  'nextStage' : LevelStage,
+  'hasEnoughCoins' : boolean,
+  'currentStage' : LevelStage,
+  'userCoins' : bigint,
+}
 export interface Note {
   'id' : bigint,
   'title' : string,
@@ -126,6 +138,7 @@ export interface _SERVICE {
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCoinBalance' : ActorMethod<[], bigint>,
+  'getCurrentAndNextLevelStage' : ActorMethod<[], LevelStatus>,
   'getFocusTimerState' : ActorMethod<[], [] | [PersistentFocusTimer]>,
   'getFullPersistentStopwatchState' : ActorMethod<[], [boolean, bigint]>,
   'getNewUserNeedsOnboarding' : ActorMethod<[], boolean>,
@@ -151,6 +164,7 @@ export interface _SERVICE {
   'markProfileSetupFinished' : ActorMethod<[], undefined>,
   'pausePersistentStopwatch' : ActorMethod<[], undefined>,
   'purchaseCustomBackground' : ActorMethod<[string], boolean>,
+  'purchaseNextLevelStage' : ActorMethod<[], LevelStatus>,
   'recordTimerSession' : ActorMethod<[bigint, boolean], bigint>,
   'removeNoteImage' : ActorMethod<[bigint, ExternalBlob], undefined>,
   'removeVoiceNote' : ActorMethod<[bigint, ExternalBlob], undefined>,

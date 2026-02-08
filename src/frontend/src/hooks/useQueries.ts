@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Task, TimetableEntry, Note, Reminder, ExternalBlob, TimerSessionV2, UserProfile, TimetableTick } from '../backend';
+import type { Task, TimetableEntry, Note, Reminder, ExternalBlob, TimerSessionV2, UserProfile, TimetableTick, LevelStatus } from '../backend';
 
 // Profile Management
 export function useGetCallerUserProfile() {
@@ -36,6 +36,7 @@ export function useInitializeProfile() {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
+      queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
     },
   });
 }
@@ -96,6 +97,7 @@ export function useSpendCoinsForBackground() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
     },
   });
 }
@@ -113,6 +115,7 @@ export function usePurchaseCustomBackground() {
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['backgroundOwnership'] });
+      queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
     },
   });
 }
@@ -127,6 +130,37 @@ export function useIsBackgroundOwned(backgroundId: string | null) {
       return actor.isBackgroundOwned(backgroundId);
     },
     enabled: !!actor && !isFetching && !!backgroundId,
+  });
+}
+
+// Level System
+export function useGetCurrentAndNextLevelStage() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<LevelStatus>({
+    queryKey: ['levelStatus'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getCurrentAndNextLevelStage();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function usePurchaseNextLevelStage() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.purchaseNextLevelStage();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
   });
 }
 
@@ -184,12 +218,27 @@ export function useCompleteTask() {
   });
 }
 
+export function useDeleteTask() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (taskId: bigint) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.deleteTask(taskId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+}
+
 // Timetable
 export function useGetTimetableEntries() {
   const { actor, isFetching } = useActor();
 
   return useQuery<TimetableEntry[]>({
-    queryKey: ['timetable'],
+    queryKey: ['timetableEntries'],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getTimetableEntries();
@@ -220,7 +269,7 @@ export function useAddTimetableEntry() {
       return actor.addTimetableEntry(title, activityType, startTime, endTime, colorCode);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timetable'] });
+      queryClient.invalidateQueries({ queryKey: ['timetableEntries'] });
     },
   });
 }
@@ -245,8 +294,7 @@ export function useUpdateTimetableEntry() {
       return actor.updateTimetableEntry(id, newTitle, newActivityType, newColorCode);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timetable'] });
-      queryClient.invalidateQueries({ queryKey: ['timetableTickHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['timetableEntries'] });
     },
   });
 }
@@ -261,8 +309,8 @@ export function useDeleteTimetableEntry() {
       return actor.deleteTimetableEntry(entryId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timetable'] });
-      queryClient.invalidateQueries({ queryKey: ['timetableTickHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['timetableEntries'] });
+      queryClient.invalidateQueries({ queryKey: ['timetableTicks'] });
     },
   });
 }
@@ -277,7 +325,7 @@ export function useToggleTimetableEntryForToday() {
       return actor.toggleTimetableEntryForToday(entryId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['timetableTickHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['timetableTicks'] });
     },
   });
 }
@@ -288,7 +336,7 @@ export function useGetTimetableTickHistoryForEntry(entryId: bigint | null) {
   return useQuery<TimetableTick[]>({
     queryKey: ['timetableTickHistory', entryId?.toString()],
     queryFn: async () => {
-      if (!actor || !entryId) return [];
+      if (!actor || entryId === null) return [];
       return actor.getTimetableTickHistoryForEntry(entryId);
     },
     enabled: !!actor && !isFetching && entryId !== null,
@@ -314,15 +362,7 @@ export function useAddNote() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      title,
-      content,
-      subject,
-    }: {
-      title: string;
-      content: string;
-      subject: string;
-    }) => {
+    mutationFn: async ({ title, content, subject }: { title: string; content: string; subject: string }) => {
       if (!actor) throw new Error('Actor not initialized');
       return actor.addNote(title, content, subject);
     },
@@ -375,17 +415,18 @@ export function useDeleteNote() {
 }
 
 // Reminders
-export function useGetUpcomingReminders(currentTime: bigint) {
+export function useGetUpcomingReminders() {
   const { actor, isFetching } = useActor();
 
   return useQuery<Reminder[]>({
-    queryKey: ['reminders', currentTime.toString()],
+    queryKey: ['reminders'],
     queryFn: async () => {
       if (!actor) return [];
+      const currentTime = BigInt(Date.now());
       return actor.getUpcomingReminders(currentTime);
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   });
 }
 
@@ -404,24 +445,22 @@ export function useAddReminder() {
   });
 }
 
-// Timer Sessions
-export function useRecordTimerSession() {
+export function useDeleteReminder() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ durationMinutes, completed }: { durationMinutes: bigint; completed: boolean }) => {
+    mutationFn: async (reminderId: bigint) => {
       if (!actor) throw new Error('Actor not initialized');
-      return actor.recordTimerSession(durationMinutes, completed);
+      return actor.deleteReminder(reminderId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
     },
   });
 }
 
+// Timer Sessions
 export function useGetTimerSessions() {
   const { actor, isFetching } = useActor();
 
@@ -432,6 +471,25 @@ export function useGetTimerSessions() {
       return actor.getTimerSessions();
     },
     enabled: !!actor && !isFetching,
+  });
+}
+
+export function useRecordTimerSession() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ durationMinutes, completed }: { durationMinutes: bigint; completed: boolean }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.recordTimerSession(durationMinutes, completed);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timerSessions'] });
+      queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
+      queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
+    },
   });
 }
 
@@ -450,6 +508,80 @@ export function useGetStudyStreak() {
 }
 
 // Stopwatch
+export function useGetFullPersistentStopwatchState() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<[boolean, bigint]>({
+    queryKey: ['stopwatchState'],
+    queryFn: async () => {
+      if (!actor) return [false, BigInt(0)];
+      return actor.getFullPersistentStopwatchState();
+    },
+    enabled: !!actor && !isFetching,
+    refetchInterval: 1000,
+  });
+}
+
+export function useStartPersistentStopwatch() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.startPersistentStopwatch();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stopwatchState'] });
+    },
+  });
+}
+
+export function usePausePersistentStopwatch() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.pausePersistentStopwatch();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stopwatchState'] });
+    },
+  });
+}
+
+export function useResumePersistentStopwatch() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.resumePersistentStopwatch();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stopwatchState'] });
+    },
+  });
+}
+
+export function useResetPersistentStopwatch() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.resetPersistentStopwatch();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stopwatchState'] });
+    },
+  });
+}
+
 export function useCompleteStopwatchSession() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -463,6 +595,21 @@ export function useCompleteStopwatchSession() {
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
+      queryClient.invalidateQueries({ queryKey: ['stopwatchRewardCount'] });
+      queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
     },
+  });
+}
+
+export function useGetTodayStopwatchRewardCount() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<bigint>({
+    queryKey: ['stopwatchRewardCount'],
+    queryFn: async () => {
+      if (!actor) return BigInt(0);
+      return actor.getTodayStopwatchRewardCount();
+    },
+    enabled: !!actor && !isFetching,
   });
 }

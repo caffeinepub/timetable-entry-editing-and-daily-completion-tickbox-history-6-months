@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Update the app branding by renaming it to “Scholar Gold” and using the provided Scholar Gold logo image as the in-app brand mark and browser icon.
+**Goal:** Fix the Level progression/upgrade flow to remove glitches and ensure user avatars reliably upload, persist, and display.
 
 **Planned changes:**
-- Rename all user-facing occurrences of the app name to “Scholar Gold” (browser tab title, authenticated landing header/title, Login screen brand name, and top navigation header brand label).
-- Replace the current GraduationCap brand mark in the header and Login screen with an image logo derived from the provided Scholar Gold image, ensuring it looks crisp in light/dark themes and at common sizes (e.g., 40x40).
-- Configure the favicon/app icon using generated icon assets placed under `frontend/public/assets/generated` and reference them from the HTML entry point.
+- Rebuild Level system logic end-to-end so current stage, next stage, upgrade eligibility, coin costs (50 per paid upgrade), and max-level handling (Level 50 - Sigma Student 🗿) consistently follow the intended rules.
+- Ensure upgrades are restricted to purchasing only the immediate next stage, with correct “Next Level” display and disabled/enabled upgrade state based on coin balance.
+- Make post-upgrade UI refresh automatically (coin balance and level status) without requiring a page reload.
+- Add/fix profile avatar upload so saved images persist to the backend, return in the profile API, and render reliably (including after reload/log out + log in), with a non-broken fallback when no avatar is set.
+- Improve error handling for avatar upload/save and max-level upgrade attempts so users see clear English messages (no raw backend trap text).
 
-**User-visible outcome:** The app displays “Scholar Gold” throughout the UI, shows the Scholar Gold logo image in the header and Login screen, and the browser tab/favicon uses the Scholar Gold icon.
+**User-visible outcome:** Level progression and upgrading behave consistently (including max-level behavior), and users can upload a profile photo that persists and displays correctly across sessions, with clear error messages when something fails.

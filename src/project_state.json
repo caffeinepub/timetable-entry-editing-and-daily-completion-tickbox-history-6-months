@@ -1,18 +1,23 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
-  "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, and a daily study streak (10+ minutes/day), while ensuring the app is not renamed and AI-generated background pricing is unchanged.",
+  "projectStateVersion": 15,
+  "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, a daily study streak (10+ minutes/day), and a new coin-gated multi-stage Level system (50 levels × 5 ranks) with sequential unlocks, while ensuring the app is not renamed and AI-generated background pricing is unchanged.",
   "architectural_notes": [
     "Do not rename the app (explicit requirement).",
     "Timetable completion tracking requires backend schema changes and may require a migration (main.mo/migration.mo loop risk).",
     "Keep AI-generated background pricing unchanged (do not alter existing AI-gen background cost).",
-    "Rename request conflicts with existing requirement: do not rename the app (must be resolved before proceeding)."
+    "Rename request conflicts with existing requirement: do not rename the app (must be resolved before proceeding).",
+    "Level system requires persistent user progression data (current level/rank) and coin-spend transaction logic enforcing sequential unlocks.",
+    "Level progression must keep the same Level number across its 5 ranks (only increment Level after completing all 5 ranks).",
+    "Confirm/update Level upgrade pricing rule: user requests 50-coin cost to continue for subsequent upgrades (not 100)."
   ],
   "known_issues": [
-    "Build/editor may loop between main.mo and migration.mo when attempting schema/migration changes for timetable completion history."
+    "Build/editor may loop between main.mo and migration.mo when attempting schema/migration changes for timetable completion history.",
+    "App icon/logo does not match the user-provided image (reported mismatch after deployment).",
+    "Level progression currently appears incorrect: Level number may be incrementing per rank; it should stay the same for all 5 ranks within a Level.",
+    "Avatar is not being added/applied (user reports avatar not added)."
   ],
-  "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Square app icon crop based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_512x512.png)\n- App icon for PWA/large usage based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-app-icon.dim_192x192.png)\n- Favicon based on the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png” (scholar-gold-favicon.dim_32x32.png)",
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-add-support-for-editing-an-existing-timetable-entry-while-keeping-the-schedule-the-same-the-entry-s-date-time-starttime-endtime-must-not-change-but-the-user-must-be-able-to-update-non-schedule-fields-at-minimum-title-optionally-activitytype-and-colorcode",
@@ -101,6 +106,62 @@
         "REQ-12"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-regenerate-the-scholar-gold-logo-app-icon-favicons-so-they-visually-match-the-user-provided-scholar-gold-image-referenced-in-project-state-as-the-uploaded-gemini-generated-image-tnaecitnaecitnae-png-producing-fresh-cache-safe-filenames-for-all-required-sizes",
+      "title": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the user-provided Scholar Gold image (referenced in project state as the uploaded “Gemini_Generated_Image_tnaecitnaecitnae.png”), producing fresh, cache-safe filenames for all required sizes.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-all-frontend-references-to-use-the-regenerated-cache-safe-icon-filenames-for-1-the-browser-favicon-and-app-icons-in-frontend-index-html-and-2-the-brand-logo-image-shown-in-the-authenticated-header-and-the-login-screen-header-ensuring-the-displayed-icon-matches-the-provided-one-after-a-normal-reload-no-manual-cache-clearing-required",
+      "title": "Update all frontend references to use the regenerated, cache-safe icon filenames for: (1) the browser favicon and app icons in frontend/index.html, and (2) the brand logo image shown in the authenticated Header and the Login screen header, ensuring the displayed icon matches the provided one after a normal reload (no manual cache clearing required).",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-level-ui-in-the-frontend-in-the-authenticated-experience-that-displays-the-current-level-stage-label-the-next-level-stage-label-the-coin-cost-to-unlock-the-next-stage-and-a-clear-locked-unlocked-state-include-an-upgrade-action-that-purchases-the-next-stage-using-coins-and-refreshes-the-displayed-coin-balance-and-level-state",
+      "title": "Add a Level UI in the frontend (in the authenticated experience) that displays: the current Level stage label, the next Level stage label, the coin cost to unlock the next stage, and a clear locked/unlocked state; include an \"Upgrade\" action that purchases the next stage using coins and refreshes the displayed coin balance and level state.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-and-actor-calls-to-support-level-status-fetching-and-level-upgrade-purchasing-including-cache-invalidation-of-any-affected-queries-at-minimum-coin-balance-and-current-user-profile-level-status",
+      "title": "Add React Query hooks and actor calls to support Level status fetching and Level upgrade purchasing, including cache invalidation of any affected queries (at minimum: coin balance and current user profile/level status).",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-frontend-level-progression-ui-logic-so-it-does-not-treat-currentstage-level-nextstage-level-as-max-level-reached-since-within-level-rank-upgrades-should-keep-the-same-level-number-determine-max-level-state-based-on-being-at-the-final-stage-level-50-sigma-student-returned-by-the-backend-and-ensure-the-ui-correctly-shows-the-next-stage-and-upgrade-button-for-rank-upgrades-within-the-same-level",
+      "title": "Fix the frontend Level Progression UI logic so it does not treat “currentStage.level === nextStage.level” as “max level reached” (since within-level rank upgrades should keep the same level number). Determine max-level state based on being at the final stage (Level 50 - Sigma Student) returned by the backend, and ensure the UI correctly shows the next stage and upgrade button for rank upgrades within the same level.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-level-system-end-to-end-so-level-progression-has-no-glitch-the-current-stage-next-stage-max-level-detection-coin-costs-and-upgrade-flow-must-consistently-follow-the-intended-rules-level-number-stays-the-same-across-the-5-ranks-before-incrementing-level-1-noob-is-free-every-paid-upgrade-costs-50-coins-users-can-only-purchase-the-immediate-next-stage-max-level-is-level-50-sigma-student",
+      "title": "Fix the Level system end-to-end so level progression has no glitch: the current stage, next stage, max-level detection, coin costs, and upgrade flow must consistently follow the intended rules (Level number stays the same across the 5 ranks before incrementing; Level 1 - Noob is free; every paid upgrade costs 50 coins; users can only purchase the immediate next stage; max level is Level 50 - Sigma Student 🗿).",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-fix-user-avatar-support-so-uploading-a-profile-photo-from-the-profile-page-persists-to-the-backend-and-reliably-renders-as-the-user-s-avatar-including-after-reload-log-out-log-in",
+      "title": "Add/fix user avatar support so uploading a profile photo from the Profile page persists to the backend and reliably renders as the user’s avatar (including after reload/log out + log in).",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -187,6 +248,70 @@
     {
       "id": "AR-16",
       "summary": "Change the app photo/icon to match the user-provided image",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add a coin-gated Level system: 50 levels × 5 ranks (Noob/Beginner/Advanced/Pro/Sigma) with Level 1 Noob free, Level 1 Beginner costs 50 coins, all subsequent upgrades cost 100 coins, and only the next rank can be purchased sequentially; include backend level column and UI showing current/next level with locked/unlocked states",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Extend the backend user data model to persist each user’s current Level stage as a new stored field (a \"level column\"), defaulting to \"Level 1 - Noob 🫠\" for new users and for existing users on upgrade.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Implement backend Level catalog + business rules for 250 total stages (50 × 5) with these rank names per level: Noob 🫠, Beginner 📈, Advanced Student 💪🏻, Pro Student 🔥, Sigma Student 🗿. Enforce coin-based sequential unlocking: the first stage (Level 1 - Noob 🫠) is free; the next stage (Level 1 - Beginner 📈) costs 50 coins; every subsequent upgrade costs 100 coins; users can only purchase the immediate next stage (no skipping).",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Add backend public methods required by the frontend to (1) fetch the user’s current Level stage and the next purchasable stage (including its coin cost), and (2) purchase/unlock the next stage, returning the updated status after purchase.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Adjust Level system rules: Level number should remain the same across its 5 ranks (Noob→Sigma) before incrementing to the next Level number; ensure UI/backend progression reflects this",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Adjust Level upgrade coin cost rules so that after the initial 50-coin upgrade, subsequent upgrades continue to cost 50 coins (instead of increasing to 100)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Update the Level system progression rules so that the Level number remains the same across the 5 ranks (Noob → Beginner → Advanced Student → Pro Student → Sigma Student) before incrementing to the next Level number, and ensure the backend’s “current stage” and “next stage” calculations reflect this (e.g., Level 1 should have 5 sequential rank upgrades before progressing to Level 2).",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Change the Level upgrade coin-cost rules so that all paid upgrades cost 50 coins (including all upgrades after the first one), while keeping the initial free stage (Level 1 - Noob) at 0 coins.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Add user avatar support (avatar currently not being added/applied as expected)",
       "reqIds": [],
       "status": "pending"
     }

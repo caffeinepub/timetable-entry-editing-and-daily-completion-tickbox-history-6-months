@@ -3,8 +3,7 @@ import { useGetUpcomingReminders } from '../hooks/useQueries';
 import { NotificationManager } from '@/lib/NotificationManager';
 
 export function ReminderNotifications() {
-  const currentTime = BigInt(Date.now() * 1000000);
-  const { data: reminders = [] } = useGetUpcomingReminders(currentTime);
+  const { data: reminders = [] } = useGetUpcomingReminders();
   const [notifiedIds, setNotifiedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {

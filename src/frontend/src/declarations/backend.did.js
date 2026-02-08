@@ -53,6 +53,18 @@ export const UserProfile = IDL.Record({
   'finishedSetup' : IDL.Bool,
   'nameChangeCount' : IDL.Nat,
 });
+export const LevelStage = IDL.Record({
+  'requiredCoins' : IDL.Nat,
+  'displayText' : IDL.Text,
+  'rank' : IDL.Text,
+  'level' : IDL.Nat,
+});
+export const LevelStatus = IDL.Record({
+  'nextStage' : LevelStage,
+  'hasEnoughCoins' : IDL.Bool,
+  'currentStage' : LevelStage,
+  'userCoins' : IDL.Nat,
+});
 export const PersistentFocusTimer = IDL.Record({
   'isActive' : IDL.Bool,
   'remainingMinutes' : IDL.Nat,
@@ -142,6 +154,7 @@ export const idlService = IDL.Service({
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCoinBalance' : IDL.Func([], [IDL.Nat], ['query']),
+  'getCurrentAndNextLevelStage' : IDL.Func([], [LevelStatus], ['query']),
   'getFocusTimerState' : IDL.Func(
       [],
       [IDL.Opt(PersistentFocusTimer)],
@@ -185,6 +198,7 @@ export const idlService = IDL.Service({
   'markProfileSetupFinished' : IDL.Func([], [], []),
   'pausePersistentStopwatch' : IDL.Func([], [], []),
   'purchaseCustomBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
+  'purchaseNextLevelStage' : IDL.Func([], [LevelStatus], []),
   'recordTimerSession' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Nat], []),
   'removeNoteImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
   'removeVoiceNote' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
@@ -263,6 +277,18 @@ export const idlFactory = ({ IDL }) => {
     'coins' : IDL.Nat,
     'finishedSetup' : IDL.Bool,
     'nameChangeCount' : IDL.Nat,
+  });
+  const LevelStage = IDL.Record({
+    'requiredCoins' : IDL.Nat,
+    'displayText' : IDL.Text,
+    'rank' : IDL.Text,
+    'level' : IDL.Nat,
+  });
+  const LevelStatus = IDL.Record({
+    'nextStage' : LevelStage,
+    'hasEnoughCoins' : IDL.Bool,
+    'currentStage' : LevelStage,
+    'userCoins' : IDL.Nat,
   });
   const PersistentFocusTimer = IDL.Record({
     'isActive' : IDL.Bool,
@@ -357,6 +383,7 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCoinBalance' : IDL.Func([], [IDL.Nat], ['query']),
+    'getCurrentAndNextLevelStage' : IDL.Func([], [LevelStatus], ['query']),
     'getFocusTimerState' : IDL.Func(
         [],
         [IDL.Opt(PersistentFocusTimer)],
@@ -404,6 +431,7 @@ export const idlFactory = ({ IDL }) => {
     'markProfileSetupFinished' : IDL.Func([], [], []),
     'pausePersistentStopwatch' : IDL.Func([], [], []),
     'purchaseCustomBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
+    'purchaseNextLevelStage' : IDL.Func([], [LevelStatus], []),
     'recordTimerSession' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Nat], []),
     'removeNoteImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
     'removeVoiceNote' : IDL.Func([IDL.Nat, ExternalBlob], [], []),

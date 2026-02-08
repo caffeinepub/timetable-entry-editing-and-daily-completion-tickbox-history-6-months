@@ -8,8 +8,7 @@ import { useGetUpcomingReminders, useAddReminder } from '../hooks/useQueries';
 import { toast } from 'sonner';
 
 export function RemindersSection() {
-  const currentTime = BigInt(Date.now() * 1000000);
-  const { data: reminders = [], isLoading } = useGetUpcomingReminders(currentTime);
+  const { data: reminders = [], isLoading } = useGetUpcomingReminders();
   const addReminderMutation = useAddReminder();
 
   const [title, setTitle] = useState('');

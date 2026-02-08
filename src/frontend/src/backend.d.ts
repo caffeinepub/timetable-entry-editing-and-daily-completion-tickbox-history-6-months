@@ -33,6 +33,12 @@ export interface UserProfile {
     nameChangeCount: bigint;
 }
 export type Time = bigint;
+export interface LevelStatus {
+    nextStage: LevelStage;
+    hasEnoughCoins: boolean;
+    currentStage: LevelStage;
+    userCoins: bigint;
+}
 export interface TimerSessionV2 {
     endTime: bigint;
     createdAt: Time;
@@ -74,6 +80,12 @@ export interface Reminder {
     createdAt: Time;
     reminderTime: bigint;
 }
+export interface LevelStage {
+    requiredCoins: bigint;
+    displayText: string;
+    rank: string;
+    level: bigint;
+}
 export interface PersistentFocusTimer {
     isActive: boolean;
     remainingMinutes: bigint;
@@ -104,6 +116,7 @@ export interface backendInterface {
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCoinBalance(): Promise<bigint>;
+    getCurrentAndNextLevelStage(): Promise<LevelStatus>;
     getFocusTimerState(): Promise<PersistentFocusTimer | null>;
     getFullPersistentStopwatchState(): Promise<[boolean, bigint]>;
     getNewUserNeedsOnboarding(): Promise<boolean>;
@@ -123,6 +136,7 @@ export interface backendInterface {
     markProfileSetupFinished(): Promise<void>;
     pausePersistentStopwatch(): Promise<void>;
     purchaseCustomBackground(backgroundId: string): Promise<boolean>;
+    purchaseNextLevelStage(): Promise<LevelStatus>;
     recordTimerSession(durationMinutes: bigint, completed: boolean): Promise<bigint>;
     removeNoteImage(noteId: bigint, imageUrl: ExternalBlob): Promise<void>;
     removeVoiceNote(noteId: bigint, voiceNoteUrl: ExternalBlob): Promise<void>;

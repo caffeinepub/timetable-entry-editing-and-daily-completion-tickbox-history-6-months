@@ -1,4 +1,4 @@
-import { Moon, Sun, User } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
@@ -33,12 +33,14 @@ export function Header() {
     }
   };
 
+  const avatarSrc = profile?.profileImage?.getDirectURL() || '';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <img 
-            src="/assets/generated/scholar-gold-app-icon.dim_512x512.png" 
+            src="/assets/generated/scholar-gold-app-icon-v2.dim_512x512.png" 
             alt="Scholar Gold" 
             className="h-10 w-10 rounded-lg object-contain ring-1 ring-border"
           />
@@ -61,7 +63,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 gap-2 rounded-full px-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile.profileImage?.getDirectURL()} alt={profile.name} />
+                    {avatarSrc && <AvatarImage src={avatarSrc} alt={profile.name} />}
                     <AvatarFallback>
                       {profile.name.charAt(0).toUpperCase()}
                     </AvatarFallback>

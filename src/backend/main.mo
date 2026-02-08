@@ -7,14 +7,13 @@ import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import List "mo:core/List";
-
-import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
+import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -127,6 +126,21 @@ actor {
     streak : Nat;
   };
 
+  public type LevelStage = {
+    level : Nat;
+    rank : Text;
+    displayText : Text;
+    requiredCoins : Nat;
+  };
+
+  let levelRanks = [
+    "Noob 🫠",
+    "Beginner 📈",
+    "Advanced Student 💪🏻",
+    "Pro Student 🔥",
+    "Sigma Student 🗿",
+  ];
+
   let userTasks = Map.empty<Principal, Map.Map<Nat, Task>>();
   let userTimetableEntries = Map.empty<Principal, Map.Map<Nat, TimetableEntry>>();
   let userReminders = Map.empty<Principal, Map.Map<Nat, Reminder>>();
@@ -138,14 +152,11 @@ actor {
   let persistentFocusTimers = Map.empty<Principal, PersistentFocusTimer>();
   let persistentStopwatches = Map.empty<Principal, PersistentStopwatch>();
 
-  // User-scoped notes
   let userNotes = Map.empty<Principal, Map.Map<Nat, Note>>();
 
-  // Daily summaries and streaks
   let dailySummaries = Map.empty<Principal, Map.Map<Time.Time, DailySummary>>();
   let streakRecords = Map.empty<Principal, StreakRecord>();
 
-  // Owned backgrounds tracking
   let ownedBackgrounds = Map.empty<Principal, Map.Map<Text, Bool>>();
 
   var nextTickId = 0;
@@ -153,6 +164,16 @@ actor {
   let timetableTickOwners = Map.empty<Nat, Principal>();
 
   var nextNoteId = 1;
+
+  // User Level state - persists across upgrades
+  let userLevels = Map.empty<Principal, LevelStage>();
+
+  let defaultLevelStage : LevelStage = {
+    level = 1;
+    rank = "Noob 🫠";
+    displayText = "Level 1 - Noob 🫠";
+    requiredCoins = 0;
+  };
 
   include MixinAuthorization(accessControlState);
 
@@ -267,7 +288,7 @@ actor {
   };
 
   func getDayStart(timestamp : Time.Time) : Time.Time {
-    let nanosPerDay = 24 * 3600 * 1_000_000_000;
+    let nanosPerDay : Int = 24 * 3600 * 1_000_000_000;
     (timestamp / nanosPerDay) * nanosPerDay;
   };
 
@@ -283,7 +304,7 @@ actor {
   func updateDailySummary(user : Principal, rewardAmount : Nat, studyMinutes : Nat) {
     let summaries = getDailySummariesMap(user);
     let today = getDayStart(Time.now());
-    
+
     let updated = switch (summaries.get(today)) {
       case (null) {
         {
@@ -302,7 +323,7 @@ actor {
         };
       };
     };
-    
+
     summaries.add(today, updated);
   };
 
@@ -313,7 +334,7 @@ actor {
 
     let now = Time.now();
     let today = getDayStart(now);
-    
+
     switch (streakRecords.get(user)) {
       case (null) {
         let newRecord : StreakRecord = {
@@ -324,8 +345,8 @@ actor {
       };
       case (?record) {
         let lastDay = getDayStart(record.lastActivity);
-        let daysDiff = (today - lastDay) / (24 * 3600 * 1_000_000_000);
-        
+        let daysDiff : Int = (today - lastDay) / (24 * 3600 * 1_000_000_000);
+
         if (daysDiff == 0) {
           // Same day, no update needed
           return;
@@ -976,26 +997,22 @@ actor {
     };
 
     let owned = getOwnedBackgroundsMap(caller);
-    
-    // Check if already owned
+
     switch (owned.get(backgroundId)) {
       case (?true) {
-        // Already owned, no charge
         return true;
       };
       case (_) {
-        // Not owned, charge 200 coins
         switch (userProfiles.get(caller)) {
           case (null) { Runtime.trap("Profile not found") };
           case (?profile) {
             if (profile.coins < backgroundUploadCost) {
               return false;
             };
-            
+
             let updatedProfile = { profile with coins = profile.coins - backgroundUploadCost };
             userProfiles.add(caller, updatedProfile);
-            
-            // Mark as owned
+
             owned.add(backgroundId, true);
             return true;
           };
@@ -1220,18 +1237,15 @@ actor {
       Runtime.trap("Unauthorized: Only users can complete stopwatch sessions");
     };
 
-    // Check daily reward limit
     let todayRewards = getTodayRewardCount(caller);
     if (todayRewards >= maxDailyStopwatchRewards) {
-      // No reward, but still record the session
       updateDailySummary(caller, 0, elapsedMinutes);
       updateStreak(caller, elapsedMinutes);
       return false;
     };
 
-    // Award coins
     let rewardAmount = (elapsedMinutes * 50) / 60;
-    
+
     if (rewardAmount > 0) {
       let rewards = getUserCoinRewardsMap(caller);
       let rewardId = rewards.size() + 1;
@@ -1253,7 +1267,7 @@ actor {
 
     updateDailySummary(caller, rewardAmount, elapsedMinutes);
     updateStreak(caller, elapsedMinutes);
-    
+
     true;
   };
 
@@ -1274,5 +1288,118 @@ actor {
     };
 
     getTodayRewardCount(caller);
+  };
+
+  func getRankIndex(index : Nat) : Nat {
+    if (index < levelRanks.size()) {
+      index;
+    } else {
+      0;
+    };
+  };
+
+  func createLevelStage(level : Nat, rank : Text, requiredCoins : Nat) : LevelStage {
+    {
+      level;
+      rank;
+      displayText = "Level " # level.toText() # " - " # rank;
+      requiredCoins;
+    };
+  };
+
+  func createRank(level : Nat, rankIndex : Nat) : LevelStage {
+    let requiredCoins = if (level == 1 and rankIndex == 0) { 0 } else {
+      50;
+    };
+    createLevelStage(level, levelRanks[getRankIndex(rankIndex)], requiredCoins);
+  };
+
+  public type LevelStatus = {
+    currentStage : LevelStage;
+    nextStage : LevelStage;
+    userCoins : Nat;
+    hasEnoughCoins : Bool;
+  };
+
+  func getNextStage(currentStage : LevelStage) : LevelStage {
+    let rankIndex = levelRanks.findIndex(func(rank) { rank == currentStage.rank });
+    let currentRankIndex = switch (rankIndex) {
+      case (null) { 0 };
+      case (?index) { index };
+    };
+
+    if (currentRankIndex >= 4) {
+      createRank(currentStage.level + 1, 0);
+    } else {
+      createRank(currentStage.level, currentRankIndex + 1);
+    };
+  };
+
+  public query ({ caller }) func getCurrentAndNextLevelStage() : async LevelStatus {
+    assertUserAuthorized(caller);
+
+    let currentStage = switch (userLevels.get(caller)) {
+      case (null) { defaultLevelStage };
+      case (?stage) { stage };
+    };
+
+    let nextStage = getNextStage(currentStage);
+    let userCoins = getUserCoins(caller);
+
+    {
+      currentStage;
+      nextStage;
+      userCoins;
+      hasEnoughCoins = userCoins >= nextStage.requiredCoins;
+    };
+  };
+
+  public shared ({ caller }) func purchaseNextLevelStage() : async LevelStatus {
+    assertUserAuthorized(caller);
+
+    let currentStage = switch (userLevels.get(caller)) {
+      case (null) { defaultLevelStage };
+      case (?stage) { stage };
+    };
+
+    let nextStage = getNextStage(currentStage);
+    let userCoins = getUserCoins(caller);
+
+    if (userCoins < nextStage.requiredCoins) {
+      Runtime.trap("Not enough coins to purchase next Level stage");
+    };
+
+    setUserCoins(caller, userCoins - nextStage.requiredCoins);
+    userLevels.add(caller, nextStage);
+
+    {
+      currentStage = nextStage;
+      nextStage = getNextStage(nextStage);
+      userCoins = userCoins - nextStage.requiredCoins;
+      hasEnoughCoins = userCoins >= nextStage.requiredCoins;
+    };
+  };
+
+  func getUserCoins(user : Principal) : Nat {
+    switch (userProfiles.get(user)) {
+      case (null) { 0 };
+      case (?profile) { profile.coins };
+    };
+  };
+
+  func setUserCoins(user : Principal, coins : Nat) {
+    switch (userProfiles.get(user)) {
+      case (null) { Runtime.trap("Profile not found") };
+      case (?profile) {
+        let updatedProfile = { profile with coins };
+        userProfiles.add(user, updatedProfile);
+      };
+    };
+  };
+
+  func assertUserAuthorized(caller : Principal) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can perform this action");
+    };
   };
 };

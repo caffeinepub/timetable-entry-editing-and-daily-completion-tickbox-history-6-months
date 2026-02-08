@@ -1,89 +1,77 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Rename app to Scholar Gold and update logo/favicon assets",
+  "title": "Fix level progression UI logic and avatar persistence/display",
   "requirements": [
     {
-      "id": "REQ-10",
-      "summary": "Rename all user-facing app name text to “Scholar Gold” across the UI (tab title, login brand, header brand, authenticated hero title).",
+      "id": "REQ-23",
+      "summary": "Make level progression UI and upgrade flow consistent with backend-reported rules, including max-level handling, affordability gating, and post-upgrade refresh.",
       "acceptanceCriteria": [
-        "Browser tab/title displays “Scholar Gold”.",
-        "Login screen brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
-        "Top header brand label displays “Scholar Gold” (replacing “Exam Prep Hub”).",
-        "Authenticated home/hero title displays “Scholar Gold” (replacing “Exam Prep Hub”)."
+        "When a user is at Level 1 - Noob 🫠, the next stage shown is Level 1 - Beginner 📈 with requiredCoins = 50.",
+        "When a user is at Level 1 - Beginner 📈, the next stage shown is Level 1 - Advanced Student 💪🏻 (level number must remain 1), with requiredCoins = 50.",
+        "When a user is at Level 1 - Sigma Student 🗿, the next stage shown is Level 2 - Noob 🫠, with requiredCoins = 50.",
+        "For any stage that is not the final stage (Level 50 - Sigma Student 🗿), the frontend shows a valid “Next Level” block and an enabled Upgrade button only when the backend reports the user has enough coins.",
+        "At the final stage (Level 50 - Sigma Student 🗿), the frontend shows the max-level state and does not show an upgrade action; backend purchase calls at max level return a clear error that the frontend maps to a user-facing message.",
+        "After a successful upgrade purchase, the coin balance and level status refresh automatically (React Query invalidation works), and the UI reflects the new current stage without requiring a page reload."
       ],
       "file_operations": [
         {
-          "path": "frontend/index.html",
+          "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Update the document <title> to “Scholar Gold” to ensure the browser tab title matches the new app name."
+          "description": "Refactor the Level Progression card to strictly render the \"Current\" and \"Next\" stages from the backend LevelStatus, gate the Upgrade button only by levelStatus.hasEnoughCoins (and pending state), and compute coin-related UI (e.g., \"need X more coins\") using levelStatus.userCoins to avoid mismatches with separately-fetched balances. Update max-level detection to be robust and driven by the backend-reported stage (Level 50 + Sigma Student), and ensure max-level hides upgrade actions. Use existing shadcn-ui components already imported (Card, Button, Badge, Avatar, Dialog, etc.) without modifying any ui components. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Replace the authenticated landing/hero title text “Exam Prep Hub” with “Scholar Gold” (keep other copy unchanged unless it contains the old brand name)."
+          "description": "Harden the React Query hooks for level status and purchase so UI always re-renders with fresh data after an upgrade: ensure purchaseNextLevelStage success invalidates/refetches the levelStatus and coin-related queries used by ProfileSection (keep invalidations consistent and avoid stale reads). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Replace the header brand label text “Exam Prep Hub” with “Scholar Gold”."
+          "path": "frontend/src/utils/backendErrorMessage.ts",
+          "operation": "create",
+          "description": "Add a small utility to map backend errors into safe English user-facing messages (e.g., max-level / insufficient coins / generic failure), so raw trap text is not shown directly and logic doesn't depend on fragile string fragments scattered across UI."
         },
         {
-          "path": "frontend/src/components/LoginScreen.tsx",
+          "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Replace the login screen header brand label text “Exam Prep Hub” with “Scholar Gold”."
+          "description": "Use the new backend error-mapping utility when handling purchaseNextLevelStage failures, ensuring max-level and insufficient-coin cases show clear English messages and other errors fall back to a generic message."
         }
       ]
     },
     {
-      "id": "REQ-11",
-      "summary": "Replace the GraduationCap brand mark with a static image logo and render it crisply in light/dark themes.",
+      "id": "REQ-24",
+      "summary": "Fix profile avatar upload so it persists via backend profile image storage and reliably displays across Profile and Header, with fallback and friendly error handling.",
       "acceptanceCriteria": [
-        "Header brand mark uses an image (not the GraduationCap icon).",
-        "Login screen brand mark uses the same image.",
-        "Logo image scales correctly and does not appear stretched or pixelated at typical sizes (e.g., 40x40)."
+        "From the Profile page, selecting an image and saving the profile results in the new image being stored on the backend and returned in getCallerUserProfile().",
+        "After saving, the avatar immediately updates in the Profile UI (AvatarImage shows the newly uploaded image).",
+        "After a full page reload, the avatar still displays correctly from the stored profile image.",
+        "If the user has no avatar, the UI shows a sensible fallback (e.g., first letter of the name) and does not show broken-image UI.",
+        "Any errors during avatar upload/save produce an English user-facing error message (no raw Motoko trap text shown directly)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png",
-          "operation": "create",
-          "description": "Add the generated “Scholar Gold” square logo asset at frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png for crisp display at smaller sizes."
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Replace the current dataURL->fetch->blob conversion flow with a more reliable file-based flow: keep the selected File in state, generate a local preview via URL.createObjectURL for immediate display during editing, and on save convert the File to bytes and upload via the blob-storage ExternalBlob API (ExternalBlob.fromBytes(...), optionally withUploadProgress for UX). Ensure object URLs are revoked to avoid leaks and that cancel resets the preview/file state. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Ensure avatar rendering never shows a broken image: keep AvatarFallback as the default when no stored profile image exists, and guard AvatarImage src so empty/undefined values do not produce broken-image UI. Continue composing existing shadcn-ui Avatar/AvatarImage/AvatarFallback components without modifying ui internals. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Ensure the profile update mutation invalidates the current user profile query so avatar updates immediately after saving, and confirm that logout/login flows clear cached data so the stored avatar is refetched and displayed after reload or re-auth. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Replace the GraduationCap-based brand mark with an <img> using frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png; ensure sizing (e.g., 40x40) preserves aspect ratio and add light/dark-friendly styling (e.g., subtle ring/contrast) so it remains crisp across themes."
+          "description": "Confirm Header avatar always uses the stored profile image direct URL when available and otherwise shows a fallback initial; ensure it updates after profile mutation via React Query invalidation and remains stable after queryClient.clear on logout. Continue using existing shadcn-ui Avatar and DropdownMenu components without modifying ui internals. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/LoginScreen.tsx",
+          "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Replace the GraduationCap-based brand mark with the same <img> logo used in the header (frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png), keeping consistent sizing and theme-friendly presentation."
-        }
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "summary": "Configure favicon/app icons using the provided “Scholar Gold” generated images and reference them from the HTML entry point.",
-      "acceptanceCriteria": [
-        "A favicon is configured and visible in the browser tab.",
-        "Icon assets are served as static files from the frontend (no backend routing).",
-        "The configured icon files exist under frontend/public/assets/generated and are referenced from the HTML entry point."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png",
-          "operation": "create",
-          "description": "Add the generated PWA/large icon asset at frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png."
-        },
-        {
-          "path": "frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png",
-          "operation": "create",
-          "description": "Add the generated favicon asset at frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png."
-        },
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Add favicon/app icon <link> tags referencing frontend/public/assets/generated/scholar-gold-favicon.dim_32x32.png, frontend/public/assets/generated/scholar-gold-app-icon.dim_192x192.png, and frontend/public/assets/generated/scholar-gold-app-icon.dim_512x512.png so browsers pick up the updated icon assets."
+          "description": "Route all avatar upload/save errors through the shared backend error-mapping utility (or a profile-specific wrapper) to guarantee English user-facing messages and avoid showing raw Motoko trap strings. Verify the component's usage instructions before implementing."
         }
       ]
     }
