@@ -4,6 +4,7 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
+import Migration "migration";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import List "mo:core/List";
@@ -12,6 +13,8 @@ import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
+// Specify the data migration function in the with-clause
+(with migration = Migration.run)
 actor {
   include MixinStorage();
 
@@ -523,7 +526,7 @@ actor {
 
     let todayTickEntry = timetableTicks.toArray().find(func((tickId, tick)) { isTodayTick(tickId, tick) });
     switch (todayTickEntry) {
-      case (?(tickId, tick)) {
+      case (?(tickId, _)) {
         timetableTicks.remove(tickId);
         timetableTickOwners.remove(tickId);
         false;
@@ -552,16 +555,14 @@ actor {
     };
 
     timetableTicks.toArray().map(
-      func((tickId, tick)) { (tickId, tick) }
+      func((_, tick)) { tick }
     ).filter(
-      func((tickId, tick)) {
-        switch (timetableTickOwners.get(tickId)) {
+      func(tick) {
+        switch (timetableTickOwners.get(entryId)) {
           case (?owner) { owner == caller and tick.entryId == entryId };
           case (null) { false };
         };
       }
-    ).map(
-      func((_, tick)) { tick }
     );
   };
 
@@ -1400,4 +1401,92 @@ actor {
       Runtime.trap("Unauthorized: Only users can perform this action");
     };
   };
+
+  // Study graph support
+
+  public type StudySession = {
+    durationMinutes : Nat;
+    completed : Bool;
+    createdAt : Time.Time;
+    sessionType : Text; // "pomodoro", "custom", "stopwatch"
+  };
+
+  public query ({ caller }) func getWeeklyStudySessions() : async [StudySession] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view study sessions");
+    };
+
+    let timerSessions = getUserTimerSessionsMap(caller).values().toArray();
+    let studySessions = timerSessions.map(
+      func(session) {
+        {
+          durationMinutes = session.durationMinutes;
+          completed = session.completed;
+          createdAt = session.createdAt;
+          sessionType = if (session.durationMinutes == 25) { "pomodoro" } else { "custom" };
+        };
+      }
+    );
+
+    // Simulate stopwatch sessions as empty array for now.
+    let stopwatchSessions : [StudySession] = [];
+
+    studySessions.concat(stopwatchSessions);
+  };
+
+  // New Task Methods
+
+  public shared ({ caller }) func updateTask(taskId : Nat, title : Text, description : Text, subject : Text, priority : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update tasks");
+    };
+
+    let tasks = getUserTaskMap(caller);
+    switch (tasks.get(taskId)) {
+      case (null) { Runtime.trap("Task not found") };
+      case (?task) {
+        let updatedTask : Task = {
+          task with
+          title;
+          description;
+          subject;
+          priority;
+        };
+        tasks.add(taskId, updatedTask);
+      };
+    };
+  };
+
+  public shared ({ caller }) func toggleTaskCompletion(taskId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can toggle task completion");
+    };
+
+    let tasks = getUserTaskMap(caller);
+    switch (tasks.get(taskId)) {
+      case (null) { Runtime.trap("Task not found") };
+      case (?task) {
+        let updatedTask = { task with completed = not task.completed };
+        tasks.add(taskId, updatedTask);
+      };
+    };
+  };
+
+  // New Reminder Methods
+
+  public shared ({ caller }) func updateReminder(reminderId : Nat, title : Text, reminderTime : Int) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update reminders");
+    };
+
+    let reminders = getUserRemindersMap(caller);
+    switch (reminders.get(reminderId)) {
+      case (null) { Runtime.trap("Reminder not found") };
+      case (?reminder) {
+        let updatedReminder = { reminder with title; reminderTime };
+        reminders.add(reminderId, updatedReminder);
+      };
+    };
+  };
 };
+

@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
-  "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, a daily study streak (10+ minutes/day), and a new coin-gated multi-stage Level system (50 levels × 5 ranks) with sequential unlocks, while ensuring the app is not renamed and AI-generated background pricing is unchanged.",
+  "projectStateVersion": 19,
+  "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, a daily study streak (10+ minutes/day), and a new coin-gated multi-stage Level system (50 levels × 5 ranks) with sequential unlocks, while ensuring the app is not renamed and AI-generated background pricing is unchanged. Additionally requested: weekly study-time graph aggregating Pomodoro + Custom + Stopwatch (with separate visibility), reminders editable/deletable with notifications, and tasks editable/deletable (plus ability to unselect).",
   "architectural_notes": [
     "Do not rename the app (explicit requirement).",
     "Timetable completion tracking requires backend schema changes and may require a migration (main.mo/migration.mo loop risk).",
@@ -15,9 +15,10 @@
     "Build/editor may loop between main.mo and migration.mo when attempting schema/migration changes for timetable completion history.",
     "App icon/logo does not match the user-provided image (reported mismatch after deployment).",
     "Level progression currently appears incorrect: Level number may be incrementing per rank; it should stay the same for all 5 ranks within a Level.",
-    "Avatar is not being added/applied (user reports avatar not added)."
+    "Avatar is not being added/applied (user reports avatar not added).",
+    "Profile photo/avatar is still not working as expected after the latest deployment (user reports it still fails)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-add-support-for-editing-an-existing-timetable-entry-while-keeping-the-schedule-the-same-the-entry-s-date-time-starttime-endtime-must-not-change-but-the-user-must-be-able-to-update-non-schedule-fields-at-minimum-title-optionally-activitytype-and-colorcode",
@@ -176,6 +177,54 @@
       "title": "Ensure the authenticated header/avatar UI correctly reflects profile photo removal by re-rendering the fallback avatar when `profileImage` is `null` and by updating promptly after the remove-photo action completes (via existing React Query invalidation of `currentUserProfile`).",
       "reqIds": [
         "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-profile-photo-avatar-feature-end-to-end-so-that-uploading-a-profile-photo-from-the-profile-page-reliably-persists-and-renders-as-the-user-s-avatar-including-after-reload-and-after-logging-out-logging-back-in",
+      "title": "Fix the profile photo (avatar) feature end-to-end so that uploading a profile photo from the Profile page reliably persists and renders as the user’s avatar, including after reload and after logging out + logging back in.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-weekly-study-time-graph-in-the-authenticated-ui-that-shows-minutes-studied-for-the-last-7-days-including-1-a-combined-total-across-pomodoro-custom-timer-stopwatch-and-2-a-per-mode-breakdown-so-pomodoro-custom-and-stopwatch-minutes-are-distinguishable",
+      "title": "Add a weekly study-time graph in the authenticated UI that shows minutes studied for the last 7 days, including (1) a combined total across Pomodoro + Custom timer + Stopwatch and (2) a per-mode breakdown so Pomodoro, Custom, and Stopwatch minutes are distinguishable.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-support-to-edit-and-delete-reminders-from-the-reminders-ui-persisting-changes-in-the-backend-and-keeping-the-list-of-upcoming-reminders-in-sync-via-existing-react-query-invalidation",
+      "title": "Add support to edit and delete reminders from the Reminders UI, persisting changes in the backend and keeping the list of upcoming reminders in sync via existing React Query invalidation.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-reminders-trigger-an-in-app-browser-notification-at-the-reminder-time-as-accurately-as-possible-while-the-app-is-open-and-avoid-duplicate-notifications-for-the-same-reminder",
+      "title": "Ensure reminders trigger an in-app browser notification at the reminder time as accurately as possible while the app is open, and avoid duplicate notifications for the same reminder.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-support-to-edit-and-delete-tasks-in-the-tasks-todo-ui-persisting-changes-in-the-backend-and-keeping-the-tasks-list-in-sync-via-existing-react-query-invalidation",
+      "title": "Add support to edit and delete tasks in the Tasks (Todo) UI, persisting changes in the backend and keeping the tasks list in sync via existing React Query invalidation.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-allow-tasks-to-be-unselected-i-e-completion-can-be-toggled-both-directions-so-a-user-can-mark-a-task-completed-and-later-mark-it-as-not-completed-again",
+      "title": "Allow tasks to be unselected (i.e., completion can be toggled both directions) so a user can mark a task completed and later mark it as not completed again.",
+      "reqIds": [
+        "REQ-33"
       ],
       "version": 1
     }
@@ -343,6 +392,30 @@
       "reqIds": [
         "REQ-26"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Add a weekly study-time graph showing minutes studied (Pomodoro + Custom + Stopwatch), with combined total and separate breakdown per mode",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Allow users to edit and delete reminders, and ensure reminders trigger notifications at the reminder time",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Allow users to edit and delete tasks",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Allow tasks/reminders to be unselected (toggle off a selected state)",
+      "reqIds": [],
       "status": "pending"
     }
   ],

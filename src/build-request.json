@@ -1,84 +1,136 @@
 {
   "kind": "build_request",
-  "title": "Allow users to remove their profile photo (avatar) and persist removal",
+  "title": "Fix profile photo reliability; add weekly study time graph; enable edit/delete for reminders and tasks with accurate in-app notifications",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-25",
-      "text": "Add support for removing a user’s profile photo (avatar) from the Profile page by providing a clear UI action (e.g., “Remove Photo”) that, when confirmed, updates the user profile so that `profileImage` becomes `null` and the UI immediately falls back to the default avatar fallback (initial letter).",
-      "target": "frontend",
+      "id": "REQ-28",
+      "text": "Fix the profile photo (avatar) feature end-to-end so that uploading a profile photo from the Profile page reliably persists and renders as the user’s avatar, including after reload and after logging out + logging back in.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages-4"
+          "recent-messages"
         ],
         "quotes": [
-          "Also add we can remove photos I mean profile photos"
+          "Still profile photo is not working as expected."
         ]
       },
       "acceptanceCriteria": [
-        "When a user has an existing profile photo, the Profile page shows a visible action to remove it while in edit mode (or otherwise clearly accessible).",
-        "When the user confirms removal, the frontend calls the existing profile update flow with `profileImage = null` and keeps the current bio unchanged unless the user edits it.",
-        "After successful removal, the Profile page no longer renders an `AvatarImage` for the user and shows the fallback initial instead.",
-        "After a normal page reload and/or logout + login, the profile photo remains removed (still fallback initial).",
-        "Any temporary local preview URL and selected file state are cleared when removal succeeds or when the user cancels editing."
+        "From the Profile page, selecting an image and saving updates the user profile and shows the new avatar immediately.",
+        "After a full page reload, the avatar still displays the uploaded image (not the fallback).",
+        "After logging out and logging back in, the avatar still displays the uploaded image.",
+        "If upload/persist fails for any reason, the UI shows a clear error message and the previous avatar remains unchanged."
       ]
     },
     {
-      "id": "REQ-26",
-      "text": "Ensure the backend persists profile photo removal: when updating the caller profile, a `null`/`none` `profileImage` value must clear the stored profile image for that user, and all profile reads (`getCallerUserProfile`/`getUserProfile`) must return `profileImage = null` afterward.",
-      "target": "backend",
+      "id": "REQ-29",
+      "text": "Add a weekly study-time graph in the authenticated UI that shows minutes studied for the last 7 days, including (1) a combined total across Pomodoro + Custom timer + Stopwatch and (2) a per-mode breakdown so Pomodoro, Custom, and Stopwatch minutes are distinguishable.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages-4"
+          "recent-messages"
         ],
         "quotes": [
-          "Also add we can remove photos I mean profile photos"
+          "Also add we can see weekly graph that we can see how many minutes we studied with pomodoro and custom together and stopwatch different.",
+          "we can see weekly study time graph."
         ]
       },
       "acceptanceCriteria": [
-        "Calling the backend profile update method with `profileImage = null` clears the stored profile image for that caller.",
-        "Subsequent calls to fetch the caller’s profile return `profileImage = null`.",
-        "No other profile fields (name, coins, nameChangeCount, finishedSetup, bio) are altered as a side effect of removing the profile image (except any explicitly updated fields included in the same request)."
+        "The UI displays a 7-day view (including day labels) with minutes studied per day.",
+        "The UI provides a combined total view and a breakdown by mode (Pomodoro vs Custom vs Stopwatch).",
+        "The data used in the graph is persisted and is consistent after reload/log out + log in.",
+        "Days with zero study show as 0 minutes (no missing days)."
       ]
     },
     {
-      "id": "REQ-27",
-      "text": "Ensure the authenticated header/avatar UI correctly reflects profile photo removal by re-rendering the fallback avatar when `profileImage` is `null` and by updating promptly after the remove-photo action completes (via existing React Query invalidation of `currentUserProfile`).",
-      "target": "frontend",
+      "id": "REQ-30",
+      "text": "Add support to edit and delete reminders from the Reminders UI, persisting changes in the backend and keeping the list of upcoming reminders in sync via existing React Query invalidation.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "recent-messages-4"
+          "recent-messages"
         ],
         "quotes": [
-          "Also add we can remove photos I mean profile photos"
+          "we can delete and edit remainders"
         ]
       },
       "acceptanceCriteria": [
-        "After removing the profile photo, the Header avatar no longer shows the old image and instead shows the fallback avatar without requiring a hard refresh.",
-        "The Header continues to display the profile image when `profileImage` is present, unchanged from current behavior."
+        "Each reminder in the Upcoming Reminders list has actions to Edit and Delete.",
+        "Editing a reminder allows updating at least the title and reminder date/time, and the updated reminder appears correctly in the list after saving.",
+        "Deleting a reminder removes it from the list and it does not reappear after reload.",
+        "Backend enforces that a user can only edit/delete their own reminders."
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "text": "Ensure reminders trigger an in-app browser notification at the reminder time as accurately as possible while the app is open, and avoid duplicate notifications for the same reminder.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "they'll send notification at the time of remainder",
+          "Reminders should send a notification at the correct time."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When the current time reaches a reminder’s scheduled time (while the app is open), the app shows a browser notification for that reminder.",
+        "Notifications do not fire more than once per reminder.",
+        "If notification permissions are not granted, the app presents a clear, user-facing message prompting the user to enable notifications, and reminders still remain visible in the list."
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "text": "Add support to edit and delete tasks in the Tasks (Todo) UI, persisting changes in the backend and keeping the tasks list in sync via existing React Query invalidation.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "also task can also be edited and deleted"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Each task has actions to Edit and Delete.",
+        "Editing supports updating at minimum: title; and also updates description, subject, and priority if present.",
+        "Deleting a task removes it from the list and it does not reappear after reload.",
+        "Backend enforces that a user can only edit/delete their own tasks."
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "text": "Allow tasks to be unselected (i.e., completion can be toggled both directions) so a user can mark a task completed and later mark it as not completed again.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "recent-messages"
+        ],
+        "quotes": [
+          "also be unselected"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking the task completion checkbox toggles between completed and not completed.",
+        "A completed task can be returned to the Pending list after being unselected.",
+        "The completion state persists after reload."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (compose existing UI components instead).",
-    "Do not edit files under the frontend immutablePaths list (e.g., useActor/useInternetIdentity/main entrypoints)."
+    "Backend must remain a single Motoko actor with all logic in backend/main.mo.",
+    "Do not edit files under frontend/src/components/ui or other frontend immutable paths listed in SYSTEM_CONTEXT.",
+    "User-facing text must be in English.",
+    "Do not add real-time infrastructure (no WebSockets/push notifications); reminder notifications must be limited to what a web app can do while open."
   ],
   "nonGoals": [
-    "Do not add removal for background images or note attachments; this change applies only to the user profile photo/avatar.",
-    "Do not introduce third-party image hosting or external databases; persist removal using existing backend storage/profile mechanisms."
+    "Implementing OS-level push notifications or notifications when the browser/app is fully closed.",
+    "Adding third-party analytics or external databases to store graph data.",
+    "Changing timetable entry editing/deletion/tickbox/history behavior (already covered by existing features)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

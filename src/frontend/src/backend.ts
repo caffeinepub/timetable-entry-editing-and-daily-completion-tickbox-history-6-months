@@ -89,6 +89,14 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface UserProfile {
+    bio: string;
+    profileImage?: ExternalBlob;
+    name: string;
+    coins: bigint;
+    finishedSetup: boolean;
+    nameChangeCount: bigint;
+}
 export interface Note {
     id: bigint;
     title: string;
@@ -98,14 +106,6 @@ export interface Note {
     modifiedAt: Time;
     createdAt: Time;
     voiceNoteUrls: Array<ExternalBlob>;
-}
-export interface UserProfile {
-    bio: string;
-    profileImage?: ExternalBlob;
-    name: string;
-    coins: bigint;
-    finishedSetup: boolean;
-    nameChangeCount: bigint;
 }
 export type Time = bigint;
 export interface LevelStatus {
@@ -168,6 +168,12 @@ export interface LevelStage {
     rank: string;
     level: bigint;
 }
+export interface StudySession {
+    sessionType: string;
+    createdAt: Time;
+    completed: boolean;
+    durationMinutes: bigint;
+}
 export interface _CaffeineStorageRefillResult {
     success?: boolean;
     topped_up_amount?: bigint;
@@ -223,6 +229,7 @@ export interface backendInterface {
     getTodayStopwatchRewardCount(): Promise<bigint>;
     getUpcomingReminders(currentTime: bigint): Promise<Array<Reminder>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getWeeklyStudySessions(): Promise<Array<StudySession>>;
     initializeProfile(name: string, bio: string): Promise<void>;
     isBackgroundOwned(backgroundId: string): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
@@ -240,10 +247,13 @@ export interface backendInterface {
     spendCoinsForBackground(rarity: string): Promise<boolean>;
     startBackgroundFocusTimer(durationMinutes: bigint): Promise<void>;
     startPersistentStopwatch(): Promise<void>;
+    toggleTaskCompletion(taskId: bigint): Promise<void>;
     toggleTimetableEntryForToday(entryId: bigint): Promise<boolean>;
     updateCallerProfile(profileImage: ExternalBlob | null, bio: string): Promise<void>;
     updateFocusTimerState(remainingMinutes: bigint, isActive: boolean): Promise<void>;
     updateNote(noteId: bigint, title: string, content: string, imageUrls: Array<ExternalBlob>, voiceNoteUrls: Array<ExternalBlob>): Promise<void>;
+    updateReminder(reminderId: bigint, title: string, reminderTime: bigint): Promise<void>;
+    updateTask(taskId: bigint, title: string, description: string, subject: string, priority: bigint): Promise<void>;
     updateTimetableEntry(id: bigint, newTitle: string, newActivityType: string, newColorCode: string): Promise<void>;
 }
 import type { ExternalBlob as _ExternalBlob, Note as _Note, PersistentFocusTimer as _PersistentFocusTimer, PersistentStopwatch as _PersistentStopwatch, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -835,6 +845,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getWeeklyStudySessions(): Promise<Array<StudySession>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getWeeklyStudySessions();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getWeeklyStudySessions();
+            return result;
+        }
+    }
     async initializeProfile(arg0: string, arg1: string): Promise<void> {
         if (this.processError) {
             try {
@@ -1073,6 +1097,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async toggleTaskCompletion(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.toggleTaskCompletion(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.toggleTaskCompletion(arg0);
+            return result;
+        }
+    }
     async toggleTimetableEntryForToday(arg0: bigint): Promise<boolean> {
         if (this.processError) {
             try {
@@ -1126,6 +1164,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateNote(arg0, arg1, arg2, await to_candid_vec_n27(this._uploadFile, this._downloadFile, arg3), await to_candid_vec_n27(this._uploadFile, this._downloadFile, arg4));
+            return result;
+        }
+    }
+    async updateReminder(arg0: bigint, arg1: string, arg2: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateReminder(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateReminder(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async updateTask(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateTask(arg0, arg1, arg2, arg3, arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateTask(arg0, arg1, arg2, arg3, arg4);
             return result;
         }
     }

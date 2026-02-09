@@ -1,13 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Let users remove their profile photo (avatar) from the Profile page and have that removal persist across sessions.
+**Goal:** Improve reliability of profile avatar uploads, add a weekly study-time graph, and enable full reminder/task management with accurate in-app reminder notifications.
 
 **Planned changes:**
-- Add a clear “Remove Photo” action on the Profile page when the user currently has a profile image (accessible in edit mode or otherwise clearly available), including a confirmation step.
-- On confirmed removal, call the existing profile update flow with `profileImage = null` while leaving the bio unchanged unless the user edits it.
-- Ensure local avatar upload state (selected file and any temporary preview URL) is cleared when removal succeeds or when the user cancels editing.
-- Update the backend profile update handling so a `null`/`none` `profileImage` clears the stored profile image, and profile reads return `profileImage = null` afterward without altering unrelated fields.
-- Ensure the header/avatar UI re-renders promptly to the fallback avatar after removal by invalidating/refetching the existing `currentUserProfile` query.
+- Fix profile photo upload/persistence so the saved avatar reliably renders immediately, after reload, and after logout/login, with clear error handling on failure.
+- Add a weekly (last 7 days) study-time graph showing minutes per day with both a combined total and a per-mode breakdown (Pomodoro vs Custom timer vs Stopwatch), backed by persisted data (including explicit 0-minute days).
+- Add Edit/Delete actions for reminders (update at least title and date/time), persist changes, and keep Upcoming Reminders in sync via existing React Query invalidation with user-ownership enforcement.
+- Implement in-app browser notifications that fire at the reminder time while the app is open, avoid duplicate notifications per reminder, and show guidance when notification permissions are not granted.
+- Add Edit/Delete actions for tasks (update at minimum title, plus description/subject/priority if present), persist changes, keep tasks list in sync via existing React Query invalidation, and enforce user ownership.
+- Allow tasks’ completion to be toggled both directions (completed ↔ not completed) with persistence and proper movement between Completed/Pending states.
 
-**User-visible outcome:** Users can remove their profile photo and immediately see the default fallback avatar (initial letter) across the Profile page and header, and the removal remains after reload or re-login.
+**User-visible outcome:** Users can reliably set and keep their profile avatar, view a 7-day study-time chart with totals and per-mode breakdown, edit/delete reminders and tasks, receive accurate in-app reminder notifications while the app is open (without duplicates), and toggle tasks between completed and not completed.

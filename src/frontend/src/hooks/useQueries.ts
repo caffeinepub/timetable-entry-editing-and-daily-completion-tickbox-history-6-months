@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Task, TimetableEntry, Note, Reminder, ExternalBlob, TimerSessionV2, UserProfile, TimetableTick, LevelStatus } from '../backend';
+import type { Task, TimetableEntry, Note, Reminder, ExternalBlob, TimerSessionV2, UserProfile, TimetableTick, LevelStatus, StudySession } from '../backend';
 
 // Profile Management
 export function useGetCallerUserProfile() {
@@ -196,6 +196,48 @@ export function useAddTask() {
     }) => {
       if (!actor) throw new Error('Actor not initialized');
       return actor.addTask(title, description, subject, priority);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+}
+
+export function useUpdateTask() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      taskId,
+      title,
+      description,
+      subject,
+      priority,
+    }: {
+      taskId: bigint;
+      title: string;
+      description: string;
+      subject: string;
+      priority: bigint;
+    }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.updateTask(taskId, title, description, subject, priority);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+}
+
+export function useToggleTaskCompletion() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (taskId: bigint) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.toggleTaskCompletion(taskId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -422,7 +464,7 @@ export function useGetUpcomingReminders() {
     queryKey: ['reminders'],
     queryFn: async () => {
       if (!actor) return [];
-      const currentTime = BigInt(Date.now());
+      const currentTime = BigInt(Date.now() * 1000000);
       return actor.getUpcomingReminders(currentTime);
     },
     enabled: !!actor && !isFetching,
@@ -438,6 +480,21 @@ export function useAddReminder() {
     mutationFn: async ({ title, reminderTime }: { title: string; reminderTime: bigint }) => {
       if (!actor) throw new Error('Actor not initialized');
       return actor.addReminder(title, reminderTime);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+    },
+  });
+}
+
+export function useUpdateReminder() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ reminderId, title, reminderTime }: { reminderId: bigint; title: string; reminderTime: bigint }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.updateReminder(reminderId, title, reminderTime);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
@@ -489,6 +546,7 @@ export function useRecordTimerSession() {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['weeklyStudySessions'] });
     },
   });
 }
@@ -507,18 +565,61 @@ export function useGetStudyStreak() {
   });
 }
 
-// Stopwatch
-export function useGetFullPersistentStopwatchState() {
+// Focus Timer
+export function useGetFocusTimerState() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<[boolean, bigint]>({
-    queryKey: ['stopwatchState'],
+  return useQuery({
+    queryKey: ['focusTimerState'],
     queryFn: async () => {
-      if (!actor) return [false, BigInt(0)];
-      return actor.getFullPersistentStopwatchState();
+      if (!actor) return null;
+      return actor.getFocusTimerState();
     },
     enabled: !!actor && !isFetching,
-    refetchInterval: 1000,
+  });
+}
+
+export function useUpdateFocusTimerState() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ remainingMinutes, isActive }: { remainingMinutes: bigint; isActive: boolean }) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.updateFocusTimerState(remainingMinutes, isActive);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['focusTimerState'] });
+    },
+  });
+}
+
+export function useClearFocusTimer() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.clearFocusTimer();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['focusTimerState'] });
+    },
+  });
+}
+
+// Stopwatch
+export function useGetPersistentStopwatchState() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery({
+    queryKey: ['stopwatchState'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getPersistentStopwatchState();
+    },
+    enabled: !!actor && !isFetching,
   });
 }
 
@@ -595,20 +696,21 @@ export function useCompleteStopwatchSession() {
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
-      queryClient.invalidateQueries({ queryKey: ['stopwatchRewardCount'] });
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['weeklyStudySessions'] });
     },
   });
 }
 
-export function useGetTodayStopwatchRewardCount() {
+// Weekly Study Sessions
+export function useGetWeeklyStudySessions() {
   const { actor, isFetching } = useActor();
 
-  return useQuery<bigint>({
-    queryKey: ['stopwatchRewardCount'],
+  return useQuery<StudySession[]>({
+    queryKey: ['weeklyStudySessions'],
     queryFn: async () => {
-      if (!actor) return BigInt(0);
-      return actor.getTodayStopwatchRewardCount();
+      if (!actor) return [];
+      return actor.getWeeklyStudySessions();
     },
     enabled: !!actor && !isFetching,
   });

@@ -14,6 +14,14 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface UserProfile {
+    bio: string;
+    profileImage?: ExternalBlob;
+    name: string;
+    coins: bigint;
+    finishedSetup: boolean;
+    nameChangeCount: bigint;
+}
 export interface Note {
     id: bigint;
     title: string;
@@ -23,14 +31,6 @@ export interface Note {
     modifiedAt: Time;
     createdAt: Time;
     voiceNoteUrls: Array<ExternalBlob>;
-}
-export interface UserProfile {
-    bio: string;
-    profileImage?: ExternalBlob;
-    name: string;
-    coins: bigint;
-    finishedSetup: boolean;
-    nameChangeCount: bigint;
 }
 export type Time = bigint;
 export interface LevelStatus {
@@ -86,6 +86,12 @@ export interface LevelStage {
     rank: string;
     level: bigint;
 }
+export interface StudySession {
+    sessionType: string;
+    createdAt: Time;
+    completed: boolean;
+    durationMinutes: bigint;
+}
 export interface PersistentFocusTimer {
     isActive: boolean;
     remainingMinutes: bigint;
@@ -130,6 +136,7 @@ export interface backendInterface {
     getTodayStopwatchRewardCount(): Promise<bigint>;
     getUpcomingReminders(currentTime: bigint): Promise<Array<Reminder>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    getWeeklyStudySessions(): Promise<Array<StudySession>>;
     initializeProfile(name: string, bio: string): Promise<void>;
     isBackgroundOwned(backgroundId: string): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
@@ -147,9 +154,12 @@ export interface backendInterface {
     spendCoinsForBackground(rarity: string): Promise<boolean>;
     startBackgroundFocusTimer(durationMinutes: bigint): Promise<void>;
     startPersistentStopwatch(): Promise<void>;
+    toggleTaskCompletion(taskId: bigint): Promise<void>;
     toggleTimetableEntryForToday(entryId: bigint): Promise<boolean>;
     updateCallerProfile(profileImage: ExternalBlob | null, bio: string): Promise<void>;
     updateFocusTimerState(remainingMinutes: bigint, isActive: boolean): Promise<void>;
     updateNote(noteId: bigint, title: string, content: string, imageUrls: Array<ExternalBlob>, voiceNoteUrls: Array<ExternalBlob>): Promise<void>;
+    updateReminder(reminderId: bigint, title: string, reminderTime: bigint): Promise<void>;
+    updateTask(taskId: bigint, title: string, description: string, subject: string, priority: bigint): Promise<void>;
     updateTimetableEntry(id: bigint, newTitle: string, newActivityType: string, newColorCode: string): Promise<void>;
 }

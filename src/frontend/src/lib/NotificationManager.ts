@@ -43,7 +43,7 @@ export class NotificationManager {
     });
   }
 
-  static requestNotificationPermission(): Promise<NotificationPermission> {
+  static async requestNotificationPermission(): Promise<NotificationPermission> {
     if ('Notification' in window) {
       return Notification.requestPermission();
     }
@@ -59,5 +59,30 @@ export class NotificationManager {
       return Notification.permission;
     }
     return 'denied';
+  }
+
+  static showBrowserNotification(title: string, body?: string) {
+    if (!this.isNotificationSupported()) {
+      // Fallback to toast
+      this.showReminder(title, body);
+      return;
+    }
+
+    const permission = this.getNotificationPermission();
+    
+    if (permission === 'granted') {
+      try {
+        new Notification(title, {
+          body: body || '',
+          icon: '/assets/generated/scholar-gold-app-icon-v2.dim_192x192.png',
+        });
+      } catch (error) {
+        // Fallback to toast if browser notification fails
+        this.showReminder(title, body);
+      }
+    } else {
+      // Fallback to toast if permission not granted
+      this.showReminder(title, body);
+    }
   }
 }

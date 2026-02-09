@@ -101,6 +101,12 @@ export const Reminder = IDL.Record({
   'createdAt' : Time,
   'reminderTime' : IDL.Int,
 });
+export const StudySession = IDL.Record({
+  'sessionType' : IDL.Text,
+  'createdAt' : Time,
+  'completed' : IDL.Bool,
+  'durationMinutes' : IDL.Nat,
+});
 
 export const idlService = IDL.Service({
   '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -192,6 +198,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'getWeeklyStudySessions' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
   'initializeProfile' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'isBackgroundOwned' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
@@ -209,6 +216,7 @@ export const idlService = IDL.Service({
   'spendCoinsForBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'startBackgroundFocusTimer' : IDL.Func([IDL.Nat], [], []),
   'startPersistentStopwatch' : IDL.Func([], [], []),
+  'toggleTaskCompletion' : IDL.Func([IDL.Nat], [], []),
   'toggleTimetableEntryForToday' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'updateCallerProfile' : IDL.Func([IDL.Opt(ExternalBlob), IDL.Text], [], []),
   'updateFocusTimerState' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
@@ -220,6 +228,12 @@ export const idlService = IDL.Service({
         IDL.Vec(ExternalBlob),
         IDL.Vec(ExternalBlob),
       ],
+      [],
+      [],
+    ),
+  'updateReminder' : IDL.Func([IDL.Nat, IDL.Text, IDL.Int], [], []),
+  'updateTask' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
       [],
       [],
     ),
@@ -326,6 +340,12 @@ export const idlFactory = ({ IDL }) => {
     'createdAt' : Time,
     'reminderTime' : IDL.Int,
   });
+  const StudySession = IDL.Record({
+    'sessionType' : IDL.Text,
+    'createdAt' : Time,
+    'completed' : IDL.Bool,
+    'durationMinutes' : IDL.Nat,
+  });
   
   return IDL.Service({
     '_caffeineStorageBlobIsLive' : IDL.Func(
@@ -425,6 +445,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'getWeeklyStudySessions' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
     'initializeProfile' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'isBackgroundOwned' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
@@ -442,6 +463,7 @@ export const idlFactory = ({ IDL }) => {
     'spendCoinsForBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'startBackgroundFocusTimer' : IDL.Func([IDL.Nat], [], []),
     'startPersistentStopwatch' : IDL.Func([], [], []),
+    'toggleTaskCompletion' : IDL.Func([IDL.Nat], [], []),
     'toggleTimetableEntryForToday' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'updateCallerProfile' : IDL.Func([IDL.Opt(ExternalBlob), IDL.Text], [], []),
     'updateFocusTimerState' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
@@ -453,6 +475,12 @@ export const idlFactory = ({ IDL }) => {
           IDL.Vec(ExternalBlob),
           IDL.Vec(ExternalBlob),
         ],
+        [],
+        [],
+      ),
+    'updateReminder' : IDL.Func([IDL.Nat, IDL.Text, IDL.Int], [], []),
+    'updateTask' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
         [],
         [],
       ),

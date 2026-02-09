@@ -6,15 +6,24 @@ import { useGetCallerUserProfile } from '../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useEffect, useState } from 'react';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const { data: profile } = useGetCallerUserProfile();
   const queryClient = useQueryClient();
+  const [avatarKey, setAvatarKey] = useState(0);
 
   const isAuthenticated = !!identity;
   const disabled = loginStatus === 'logging-in';
+
+  // Force avatar refresh when profile image changes
+  useEffect(() => {
+    if (profile?.profileImage) {
+      setAvatarKey(prev => prev + 1);
+    }
+  }, [profile?.profileImage]);
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -62,8 +71,8 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 gap-2 rounded-full px-3">
-                  <Avatar className="h-8 w-8" key={avatarSrc || 'no-image'}>
-                    {avatarSrc && <AvatarImage src={avatarSrc} alt={profile.name} key={avatarSrc} />}
+                  <Avatar className="h-8 w-8" key={`avatar-${avatarKey}-${avatarSrc || 'fallback'}`}>
+                    {avatarSrc && <AvatarImage src={`${avatarSrc}?v=${avatarKey}`} alt={profile.name} />}
                     <AvatarFallback>
                       {profile.name.charAt(0).toUpperCase()}
                     </AvatarFallback>

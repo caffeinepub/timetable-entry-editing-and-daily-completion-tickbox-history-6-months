@@ -1,54 +1,124 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T07:21:37.359Z",
+  "generatedAt": "2026-02-09T16:35:44.358Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 2,
+    "total": 6,
+    "implemented": 6,
     "items": [
       {
-        "id": "REQ-25",
-        "summary": "Add support for removing a user’s profile photo (avatar) from the Profile page by providing a clear UI action (e.g., “Remove Photo”) that, when confirmed, updates the user profile so that `profileImage` becomes `null` and the UI immediately falls back to the default avatar fallback (initial letter).",
+        "id": "REQ-28",
+        "summary": "Fix the profile photo (avatar) feature end-to-end so that uploading a profile photo from the Profile page reliably persists and renders as the user’s avatar, including after reload and after logging out + logging back in.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/components/ProfileSection.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ProfileSection.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-29",
+        "summary": "Add a weekly study-time graph in the authenticated UI that shows minutes studied for the last 7 days, including (1) a combined total across Pomodoro + Custom timer + Stopwatch and (2) a per-mode breakdown so Pomodoro, Custom, and Stopwatch minutes are distinguishable.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/weeklyStudyGraph.ts",
+          "frontend/src/components/WeeklyStudyTimeGraph.tsx",
           "frontend/src/components/ProfileSection.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/weeklyStudyGraph.ts",
+          "frontend/src/components/WeeklyStudyTimeGraph.tsx",
           "frontend/src/components/ProfileSection.tsx"
         ]
       },
       {
-        "id": "REQ-26",
-        "summary": "Ensure the backend persists profile photo removal: when updating the caller profile, a `null`/`none` `profileImage` value must clear the stored profile image for that user, and all profile reads (`getCallerUserProfile`/`getUserProfile`) must return `profileImage = null` afterward.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-27",
-        "summary": "Ensure the authenticated header/avatar UI correctly reflects profile photo removal by re-rendering the fallback avatar when `profileImage` is `null` and by updating promptly after the remove-photo action completes (via existing React Query invalidation of `currentUserProfile`).",
+        "id": "REQ-30",
+        "summary": "Add support to edit and delete reminders from the Reminders UI, persisting changes in the backend and keeping the list of upcoming reminders in sync via existing React Query invalidation.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/RemindersSection.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/Header.tsx"
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/RemindersSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-31",
+        "summary": "Ensure reminders trigger an in-app browser notification at the reminder time as accurately as possible while the app is open, and avoid duplicate notifications for the same reminder.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/lib/NotificationManager.ts",
+          "frontend/src/components/ReminderNotifications.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/lib/NotificationManager.ts",
+          "frontend/src/components/ReminderNotifications.tsx"
+        ]
+      },
+      {
+        "id": "REQ-32",
+        "summary": "Add support to edit and delete tasks in the Tasks (Todo) UI, persisting changes in the backend and keeping the tasks list in sync via existing React Query invalidation.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TodoSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TodoSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-33",
+        "summary": "Allow tasks to be unselected (i.e., completion can be toggled both directions) so a user can mark a task completed and later mark it as not completed again.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TodoSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TodoSection.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
     "frontend/src/components/Header.tsx",
     "frontend/src/components/ProfileSection.tsx",
+    "frontend/src/components/ReminderNotifications.tsx",
+    "frontend/src/components/RemindersSection.tsx",
+    "frontend/src/components/TodoSection.tsx",
+    "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/NotificationManager.ts",
+    "frontend/src/utils/weeklyStudyGraph.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

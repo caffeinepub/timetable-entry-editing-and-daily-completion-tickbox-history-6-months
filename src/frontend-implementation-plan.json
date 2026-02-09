@@ -1,38 +1,155 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Profile avatar removal UI and immediate fallback rendering",
+  "title": "Improve avatar persistence, weekly study graph, reminder/task editing, and accurate in-app notifications",
   "requirements": [
     {
-      "id": "REQ-25",
-      "summary": "Add a confirmed “Remove Photo” action on the Profile page that sets profileImage to null via the existing update flow, immediately falling back to the default avatar and clearing any local preview/file state.",
+      "id": "REQ-28",
+      "summary": "Make profile photo upload persist reliably and render consistently across Profile + Header, including after reload and re-login, with clear error handling.",
       "acceptanceCriteria": [
-        "When a user has an existing profile photo, the Profile page shows a visible action to remove it while in edit mode (or otherwise clearly accessible).",
-        "When the user confirms removal, the frontend calls the existing profile update flow with `profileImage = null` and keeps the current bio unchanged unless the user edits it.",
-        "After successful removal, the Profile page no longer renders an `AvatarImage` for the user and shows the fallback initial instead.",
-        "After a normal page reload and/or logout + login, the profile photo remains removed (still fallback initial).",
-        "Any temporary local preview URL and selected file state are cleared when removal succeeds or when the user cancels editing."
+        "From the Profile page, selecting an image and saving updates the user profile and shows the new avatar immediately.",
+        "After a full page reload, the avatar still displays the uploaded image (not the fallback).",
+        "After logging out and logging back in, the avatar still displays the uploaded image.",
+        "If upload/persist fails for any reason, the UI shows a clear error message and the previous avatar remains unchanged."
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Implement a remove-avatar flow in edit mode: add a clearly visible \"Remove Photo\" button when a profile image exists (or a new preview is selected), show a confirmation dialog, and on confirm call the existing profile update mutation with profileImage = null while preserving the current bio value. On success, immediately clear selectedFile and any previewUrl (revoking the object URL), exit edit mode as appropriate, and ensure the AvatarImage is not rendered so the AvatarFallback (initial) shows. Also ensure cancel editing clears preview/file state. Use existing shadcn-ui primitives already in the file (e.g., Button, Dialog, Avatar); verify the component's usage instructions before implementing."
+          "description": "Harden avatar upload flow: use the blob-storage ExternalBlob API (e.g., ExternalBlob.fromBytes and optional upload progress) to upload, keep showing the previous avatar until the save succeeds, then switch immediately to the new avatar; add explicit, user-facing error messages when save fails. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Ensure the Header avatar updates reliably after profile changes by reacting to updated profile data and forcing AvatarImage refresh when the profile image changes (e.g., stable cache-buster/version derived from successful profile updates), while retaining fallback behavior when no image exists."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Strengthen profile query/mutation behavior for avatar reliability (e.g., ensure profile updates trigger refetch/invalidation consistently; optionally add a dedicated helper hook that exposes a stable avatar URL/version for Profile + Header)."
         }
       ]
     },
     {
-      "id": "REQ-27",
-      "summary": "Ensure the authenticated Header avatar immediately reflects profile photo removal by rendering the fallback when profileImage is null and reliably re-rendering after currentUserProfile invalidation.",
+      "id": "REQ-29",
+      "summary": "Add a weekly (last 7 days) study-time graph showing combined minutes and per-mode breakdown (Pomodoro, Custom, Stopwatch) in the authenticated UI.",
       "acceptanceCriteria": [
-        "After removing the profile photo, the Header avatar no longer shows the old image and instead shows the fallback avatar without requiring a hard refresh.",
-        "The Header continues to display the profile image when `profileImage` is present, unchanged from current behavior."
+        "The UI displays a 7-day view (including day labels) with minutes studied per day.",
+        "The UI provides a combined total view and a breakdown by mode (Pomodoro vs Custom vs Stopwatch).",
+        "The data used in the graph is persisted and is consistent after reload/log out + log in.",
+        "Days with zero study show as 0 minutes (no missing days)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Harden Header avatar rendering against stale images: derive avatarSrc only when profile.profileImage is present, and ensure AvatarImage unmounts/reloads when avatarSrc changes (e.g., by keying AvatarImage/Avatar on avatarSrc). Confirm it correctly falls back to AvatarFallback when avatarSrc is empty after React Query invalidates ['currentUserProfile']. Uses existing shadcn-ui Avatar/DropdownMenu components; verify the component's usage instructions before implementing."
+          "description": "Add a React Query hook to fetch weekly study sessions from the backend capability and keep it cached/invalidated appropriately for authenticated users."
+        },
+        {
+          "path": "frontend/src/utils/weeklyStudyGraph.ts",
+          "operation": "create",
+          "description": "Implement frontend-only aggregation helpers to map raw weekly study sessions into a fixed 7-day series with zero-filled days, plus totals and per-mode (Pomodoro/Custom/Stopwatch) breakdown; include tolerant sessionType normalization."
+        },
+        {
+          "path": "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+          "operation": "create",
+          "description": "Create a reusable graph component (no new routes) that renders day labels, combined totals, and a per-mode breakdown visualization suitable for the existing shadcn-ui/Tailwind layout. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Wire the WeeklyStudyTimeGraph into an existing authenticated view (Profile page) so users can see last-7-days totals and per-mode breakdown without adding new top-level navigation."
+        }
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "summary": "Enable edit and delete actions for upcoming reminders in the Reminders UI and keep the list in sync via React Query invalidation.",
+      "acceptanceCriteria": [
+        "Each reminder in the Upcoming Reminders list has actions to Edit and Delete.",
+        "Editing a reminder allows updating at least the title and reminder date/time, and the updated reminder appears correctly in the list after saving.",
+        "Deleting a reminder removes it from the list and it does not reappear after reload.",
+        "Backend enforces that a user can only edit/delete their own reminders."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query mutation hook for updating reminders (using the existing backend capability), and ensure existing reminder mutations consistently invalidate the reminders query key."
+        },
+        {
+          "path": "frontend/src/components/RemindersSection.tsx",
+          "operation": "modify",
+          "description": "Add Edit and Delete actions per reminder, including an edit dialog (title + date/time) and a delete confirmation; on save/delete, use React Query mutations and rely on existing invalidation to keep the list in sync."
+        }
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "summary": "Trigger accurate in-app browser notifications for reminders while the app is open, avoid duplicates, and show clear messaging when notification permission is not granted.",
+      "acceptanceCriteria": [
+        "When the current time reaches a reminder’s scheduled time (while the app is open), the app shows a browser notification for that reminder.",
+        "Notifications do not fire more than once per reminder.",
+        "If notification permissions are not granted, the app presents a clear, user-facing message prompting the user to enable notifications, and reminders still remain visible in the list."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Fix upcoming-reminders time handling to use consistent units (nanoseconds vs milliseconds) when requesting reminders so scheduling accuracy matches saved reminder timestamps."
+        },
+        {
+          "path": "frontend/src/lib/NotificationManager.ts",
+          "operation": "modify",
+          "description": "Extend NotificationManager to support browser Notification API delivery (when supported and granted), with a clear fallback to in-app toast messaging; centralize permission checks and a single, user-facing prompt message when permission is missing."
+        },
+        {
+          "path": "frontend/src/components/ReminderNotifications.tsx",
+          "operation": "modify",
+          "description": "Replace coarse polling window logic with per-reminder scheduling while the app is open (setTimeout based on reminderTime), persist a de-duplication registry (e.g., sessionStorage) so a reminder only notifies once even across refetches, and show a clear message when notification permission is denied/default."
+        }
+      ]
+    },
+    {
+      "id": "REQ-32",
+      "summary": "Enable edit and delete actions for tasks in the Tasks (Todo) UI and keep the list in sync via React Query invalidation.",
+      "acceptanceCriteria": [
+        "Each task has actions to Edit and Delete.",
+        "Editing supports updating at minimum: title; and also updates description, subject, and priority if present.",
+        "Deleting a task removes it from the list and it does not reappear after reload.",
+        "Backend enforces that a user can only edit/delete their own tasks."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add React Query mutation hooks for updating tasks and ensure delete/update mutations invalidate the tasks query key consistently."
+        },
+        {
+          "path": "frontend/src/components/TodoSection.tsx",
+          "operation": "modify",
+          "description": "Add per-task Edit and Delete actions (edit dialog for title/description/subject/priority and delete confirmation), wire to the new mutations, and ensure the UI reflects saved changes immediately via invalidation-driven refresh."
+        }
+      ]
+    },
+    {
+      "id": "REQ-33",
+      "summary": "Allow toggling task completion both directions (complete and uncomplete) and persist the state after reload.",
+      "acceptanceCriteria": [
+        "Clicking the task completion checkbox toggles between completed and not completed.",
+        "A completed task can be returned to the Pending list after being unselected.",
+        "The completion state persists after reload."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query mutation hook for toggling task completion using the existing backend capability (instead of one-way completion), and invalidate tasks on success."
+        },
+        {
+          "path": "frontend/src/components/TodoSection.tsx",
+          "operation": "modify",
+          "description": "Update task checkbox behavior in both Pending and Completed tabs to call the toggle mutation so completion can be changed in either direction, and ensure the list moves tasks between tabs based on persisted completion state."
         }
       ]
     }

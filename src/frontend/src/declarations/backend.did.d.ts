@@ -48,6 +48,12 @@ export interface Reminder {
   'createdAt' : Time,
   'reminderTime' : bigint,
 }
+export interface StudySession {
+  'sessionType' : string,
+  'createdAt' : Time,
+  'completed' : boolean,
+  'durationMinutes' : bigint,
+}
 export interface Task {
   'id' : bigint,
   'title' : string,
@@ -158,6 +164,7 @@ export interface _SERVICE {
   'getTodayStopwatchRewardCount' : ActorMethod<[], bigint>,
   'getUpcomingReminders' : ActorMethod<[bigint], Array<Reminder>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'getWeeklyStudySessions' : ActorMethod<[], Array<StudySession>>,
   'initializeProfile' : ActorMethod<[string, string], undefined>,
   'isBackgroundOwned' : ActorMethod<[string], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
@@ -175,11 +182,17 @@ export interface _SERVICE {
   'spendCoinsForBackground' : ActorMethod<[string], boolean>,
   'startBackgroundFocusTimer' : ActorMethod<[bigint], undefined>,
   'startPersistentStopwatch' : ActorMethod<[], undefined>,
+  'toggleTaskCompletion' : ActorMethod<[bigint], undefined>,
   'toggleTimetableEntryForToday' : ActorMethod<[bigint], boolean>,
   'updateCallerProfile' : ActorMethod<[[] | [ExternalBlob], string], undefined>,
   'updateFocusTimerState' : ActorMethod<[bigint, boolean], undefined>,
   'updateNote' : ActorMethod<
     [bigint, string, string, Array<ExternalBlob>, Array<ExternalBlob>],
+    undefined
+  >,
+  'updateReminder' : ActorMethod<[bigint, string, bigint], undefined>,
+  'updateTask' : ActorMethod<
+    [bigint, string, string, string, bigint],
     undefined
   >,
   'updateTimetableEntry' : ActorMethod<

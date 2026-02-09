@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { mapBackendError } from '../utils/backendErrorMessage';
+import { WeeklyStudyTimeGraph } from './WeeklyStudyTimeGraph';
 
 export function ProfileSection() {
   const { identity } = useInternetIdentity();
@@ -480,29 +481,23 @@ export function ProfileSection() {
                   </div>
 
                   {/* Progress Info */}
-                  <div className="rounded-lg border bg-muted/20 p-4">
-                    <div className="grid grid-cols-2 gap-4 text-center">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Your Coins</p>
-                        <p className="text-2xl font-bold">{Number(levelStatus.userCoins)}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Required</p>
-                        <p className="text-2xl font-bold">{Number(levelStatus.nextStage.requiredCoins)}</p>
-                      </div>
+                  <div className="rounded-lg bg-muted/50 p-4">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Your Coins</span>
+                      <span className="font-bold">{Number(levelStatus.userCoins)}</span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="rounded-lg border-2 border-primary bg-primary/5 p-6 text-center">
+                <div className="rounded-lg border-2 border-primary bg-gradient-to-r from-primary/10 to-primary/5 p-6 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
                       <TrendingUp className="h-8 w-8 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">Max Level Reached!</p>
-                      <p className="text-muted-foreground mt-2">
-                        Congratulations! You've reached the highest level: {levelStatus.currentStage.displayText}
+                      <h3 className="text-2xl font-bold">Maximum Level Reached!</h3>
+                      <p className="mt-2 text-muted-foreground">
+                        Congratulations! You've reached the highest level possible.
                       </p>
                     </div>
                   </div>
@@ -510,10 +505,13 @@ export function ProfileSection() {
               )}
             </div>
           ) : (
-            <div className="text-center text-muted-foreground">No level data available</div>
+            <div className="text-center text-muted-foreground">Unable to load level status</div>
           )}
         </CardContent>
       </Card>
+
+      {/* Weekly Study Time Graph */}
+      <WeeklyStudyTimeGraph />
 
       {/* Name Change Dialog */}
       <Dialog open={showNameDialog} onOpenChange={setShowNameDialog}>
@@ -521,19 +519,19 @@ export function ProfileSection() {
           <DialogHeader>
             <DialogTitle>Change Display Name</DialogTitle>
             <DialogDescription>
-              {nameCost === 0 
-                ? 'First name change is free!' 
+              {nameCost === 0
+                ? 'First name change is free!'
                 : `Changing your name costs ${nameCost} coins.`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="newName">New Name</Label>
+              <Label htmlFor="new-name">New Name</Label>
               <Input
-                id="newName"
+                id="new-name"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Enter your new name"
+                placeholder="Enter new name"
               />
             </div>
           </div>
@@ -541,11 +539,11 @@ export function ProfileSection() {
             <Button variant="outline" onClick={() => setShowNameDialog(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleNameChange}
               disabled={changeNameMutation.isPending || !newName.trim()}
             >
-              {changeNameMutation.isPending ? 'Changing...' : 'Confirm Change'}
+              {changeNameMutation.isPending ? 'Changing...' : 'Change Name'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -557,7 +555,7 @@ export function ProfileSection() {
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Profile Photo</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove your profile photo? Your profile will display your initial instead.
+              Are you sure you want to remove your profile photo? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

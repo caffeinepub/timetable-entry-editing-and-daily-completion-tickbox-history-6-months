@@ -1,33 +1,48 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T07:21:37.356Z",
-  "summary": "Diff shows frontend changes in Header and ProfileSection that appear related to avatar display and a remove-photo dialog, but key parts of the remove flow and backend persistence cannot be verified from the provided truncated diff. Backend changes do not include visible logic to clear/persist `profileImage = null`.",
-  "missing_requirements": [
+  "generatedAt": "2026-02-09T16:35:44.354Z",
+  "summary": "The diff implements the weekly study-time graph UI, reminder edit/delete UI, task edit/delete UI, and in-app reminder notification scheduling with de-duplication. However, the diff also includes several changes not requested in the BuildRequest (notably app branding/renaming and new migration scaffolding). Backend support for new reminder/task edit/delete and weekly-session querying cannot be fully verified from the truncated backend diff.",
+  "missing_requirements": [],
+  "hallucinated_features": [
     {
-      "id": "REQ-25",
-      "requirement": "Add support for removing a user’s profile photo from the Profile page with a clear UI action + confirmation, update profile with `profileImage = null`, immediately fall back to default avatar, clear local preview/selected file state on success or cancel, and persist after reload.",
-      "reason": "ProfileSection shows state for a remove-photo dialog (`showRemovePhotoDialog`) and edit cancel cleanup for preview/selected file, but the diff is truncated before any confirmed UI action wiring and before any mutation call that sets `profileImage` to null; also no evidence is shown that AvatarImage is conditionally not rendered after successful removal on the Profile page.",
+      "description": "App branding/renaming to “Scholar Gold” and related UI/logo updates.",
+      "reason": "The BuildRequest does not request any rebranding or renaming work; it focuses on avatar reliability, weekly study-time graph, reminders/tasks edit/delete, and reminder notifications.",
       "evidence": [
-        "frontend/src/components/ProfileSection.tsx (truncated)"
+        "frontend/src/components/Header.tsx",
+        "frontend-file-summaries.txt (mentions \"now branded as \\\"Scholar Gold\\\"\" and LoginScreen branding)"
       ]
     },
     {
-      "id": "REQ-26",
-      "requirement": "Backend must persist profile photo removal: updating caller profile with `profileImage = null/none` clears stored image; subsequent profile reads return `profileImage = null`; no other fields changed as side effect.",
-      "reason": "backend/main.mo changes shown only include type definitions and surrounding context; no evidence is present of update logic handling `null/none` to clear the stored profile image, nor of read methods returning null afterward.",
+      "description": "Added backend migration module and wired migration into the actor.",
+      "reason": "No migration work is requested; constraints specify keeping backend logic in backend/main.mo, but this adds a separate backend/migration.mo module.",
       "evidence": [
-        "backend/main.mo (truncated)"
+        "backend/migration.mo",
+        "backend/main.mo (with migration = Migration.run)"
+      ]
+    },
+    {
+      "description": "Added/changed level rank strings including emojis (e.g., \"Noob 🫠\", \"Pro Student 🔥\").",
+      "reason": "Not requested in the BuildRequest; also potentially conflicts with the constraint that user-facing text must be in English (emojis are non-text symbols).",
+      "evidence": [
+        "backend/main.mo (levelRanks array)"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.62,
+  "confidence": 0.63,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/components/Header.tsx",
     "frontend/src/components/ProfileSection.tsx",
+    "frontend/src/components/ReminderNotifications.tsx",
+    "frontend/src/components/RemindersSection.tsx",
+    "frontend/src/components/TodoSection.tsx",
+    "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/NotificationManager.ts",
+    "frontend/src/utils/weeklyStudyGraph.ts",
     "project_state.json"
   ]
 }
