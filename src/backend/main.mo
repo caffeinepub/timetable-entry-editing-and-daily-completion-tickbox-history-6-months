@@ -7,14 +7,14 @@ import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
 import Iter "mo:core/Iter";
 import List "mo:core/List";
-import Migration "migration";
+
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
 // Use migration on upgrade to clear all invalid/old rank values from persistent state.
-(with migration = Migration.run)
+
 actor {
   let initialCoins = 500;
   let appStartTime = 1662049941715;

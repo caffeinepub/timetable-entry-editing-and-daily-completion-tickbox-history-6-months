@@ -1,63 +1,58 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T09:12:26.039Z",
+  "generatedAt": "2026-02-10T10:16:22.643Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 2,
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-66",
-        "summary": "Update the Level rank labels shown in the app to exactly use this 5-rank list (in this order) for every Level: \"Noob\", \"Beginner 📈\", \"Advanced Student 💪🏻\", \"Pro Student 🔥\", \"Sigma Student 🗿\" (i.e., remove the 🫠 emoji from the Noob rank everywhere and ensure consistent spelling/casing across UI and backend-derived display text).",
+        "id": "REQ-69",
+        "summary": "Generate a new Scholar Gold logo/app-icon image that visually matches the user-provided reference (uploaded Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design): deep navy radial-gradient background, ornate/gold circular border with gold glow, central book icon, and the text “Scholar Gold” with metallic gold styling plus the subtitle “MADE BY PD”. Export as PNG assets in standard icon sizes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/utils/levelRanks.ts",
-          "frontend/src/components/ProfileSection.tsx",
-          "frontend/src/components/RewardShopSection.tsx"
+          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
+          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
+          "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png"
         ],
         "matchedFiles": [
-          "frontend/src/utils/levelRanks.ts",
-          "frontend/src/components/ProfileSection.tsx",
-          "frontend/src/components/RewardShopSection.tsx"
+          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
+          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
+          "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png"
         ]
       },
       {
-        "id": "REQ-67",
-        "summary": "Revise the Level upgrade coin-cost rules end-to-end so the required coin cost depends on the Level number: all paid upgrades within Level 1 cost 50 coins; all paid upgrades within Level 2 cost 100 coins; and for each subsequent Level up to Level 50 the paid upgrade cost increases by 50 coins per Level (i.e., paidUpgradeCost(level) = level * 50). Keep the initial stage (Level 1 - Noob) free (0 coins), keep the rule that Level number stays the same across its 5 ranks before incrementing, and keep the rule that users can only purchase the immediate next stage (no skipping).",
+        "id": "REQ-70",
+        "summary": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ProfileSection.tsx",
-          "frontend/src/utils/backendErrorMessage.ts"
+          "frontend/index.html",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/LoginScreen.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/ProfileSection.tsx",
-          "frontend/src/utils/backendErrorMessage.ts"
+          "frontend/index.html",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/LoginScreen.tsx"
         ]
-      },
-      {
-        "id": "REQ-68",
-        "summary": "Ensure existing users with previously stored Level stage data continue to work after changing the Noob label and pricing rules, without breaking Level status fetching or purchase flow; normalize/handle any legacy stored Noob rank values (e.g., \"Noob 🫠\") so users do not get stuck or see inconsistent labels.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/ProfileSection.tsx",
-    "frontend/src/components/RewardShopSection.tsx",
-    "frontend/src/utils/backendErrorMessage.ts",
-    "frontend/src/utils/levelRanks.ts",
+    "frontend/index.html",
+    "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
+    "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
+    "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/LoginScreen.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

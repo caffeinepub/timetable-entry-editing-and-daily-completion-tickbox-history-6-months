@@ -24,9 +24,9 @@ export function LoginScreen() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <img 
-              src="/assets/generated/scholar-gold-app-icon-v2.dim_512x512.png" 
+              src="/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png" 
               alt="Scholar Gold" 
-              className="h-10 w-10 rounded-lg object-contain ring-1 ring-border"
+              className="h-10 w-10 rounded-full object-cover"
             />
             <span className="text-xl font-bold">Scholar Gold</span>
           </div>
@@ -139,9 +139,9 @@ export function LoginScreen() {
 
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          © 2026. Built with love using{' '}
+          © {new Date().getFullYear()}. Built with love using{' '}
           <a
-            href="https://caffeine.ai"
+            href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium text-primary hover:underline"

@@ -1,59 +1,50 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T09:12:26.035Z",
-  "summary": "Rank labels were updated to the new 5-rank list in both backend (levelRanks array) and frontend (new LEVEL_RANKS utility + normalizeRank usage). A backend migration was introduced, but it appears to drop users with legacy/invalid rank strings rather than normalize them. The diff summary does not provide evidence that the per-level upgrade cost rule (level * 50) was implemented/enforced end-to-end in backend level-status and purchase logic.",
+  "generatedAt": "2026-02-10T10:16:22.639Z",
+  "summary": "Icon filename references were updated to v3 in frontend/index.html, Header.tsx, and LoginScreen.tsx. However, the diff summary shows no newly added PNG assets under frontend/public/assets/generated, so the core asset-generation requirement is not evidenced. Several unrelated behavioral changes (auth retry/clear, avatar refresh logic, project_state scope text) appear in the modified files without being requested by the BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-67",
-      "requirement": "Revise Level upgrade coin-cost rules so paid upgrades within a given Level cost level*50 (Level 1=50, Level 2=100 ... Level 50=2500), keep Level 1 Noob free, enforce only immediate-next-stage purchase, and ensure frontend shows backend-provided requiredCoins.",
-      "reason": "The diff summary shows rank list changes and a migration hook, but does not show any changes to backend level-stage cost computation, `getCurrentAndNextLevelStage()` (or equivalent) returning the new `nextStage.requiredCoins`, or purchase/upgrade enforcement to deduct the new per-level cost and prevent skipping.",
+      "id": "REQ-69",
+      "requirement": "Generate new Scholar Gold logo/app-icon PNG assets (32x32, 192x192, 512x512) matching the provided gold circular design and place them under frontend/public/assets/generated with cache-safe filenames.",
+      "reason": "The diff shows no added files and provides no evidence that new PNG assets were created/added under frontend/public/assets/generated; only code references to v3 filenames were updated.",
       "evidence": [
-        "backend/main.mo (truncated; only shows levelRanks array and migration hook, no cost logic shown)"
-      ]
-    },
-    {
-      "id": "REQ-68",
-      "requirement": "Normalize/handle legacy stored rank values (e.g., \"Noob 🫠\") so existing users continue to work and see \"Noob\" without traps or getting stuck.",
-      "reason": "The added migration filters out any stage whose rank is not exactly one of the valid ranks; it does not map \"Noob 🫠\" to \"Noob\". This risks deleting/clearing affected users' stored level stage rather than normalizing it as required by the acceptance criteria.",
-      "evidence": [
-        "backend/migration.mo (cleanInvalidRanks filters invalid ranks; no mapping from \"Noob 🫠\" to \"Noob\")"
+        "File diff summary: \"Added: 0\"",
+        "frontend/index.html (references v3 PNGs but does not prove assets exist)",
+        "frontend/src/components/Header.tsx (references v3 PNG)",
+        "frontend/src/components/LoginScreen.tsx (references v3 PNG)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend state migration that clears/removes all invalid/old rank values rather than purely backward-compatible normalization.",
-      "reason": "BuildRequest allows introducing `backend/migration.mo` only if strictly required and prefers backward-compatible normalization. The diff introduces a migration and explicitly states it will clear invalid/old rank values; this goes beyond (and potentially contradicts) the requested legacy normalization behavior.",
+      "description": "Added/changed authentication handling in Header: retry login on 'User is already authenticated', clear query cache on logout, and new error logging.",
+      "reason": "BuildRequest explicitly scoped to swapping logo/icon assets and updating references; it did not request any authentication or query-cache behavior changes.",
       "evidence": [
-        "backend/main.mo (\"Use migration on upgrade to clear all invalid/old rank values from persistent state.\")",
-        "backend/migration.mo (cleanInvalidRanks filters out ranks not in valid list)"
+        "frontend/src/components/Header.tsx"
       ]
     },
     {
-      "description": "Reward shop component imports LEVEL_RANKS (rank list) despite no requested changes to the reward shop.",
-      "reason": "REQ-66 is about rank labels wherever displayed; however, the diff shows `RewardShopSection` now imports `LEVEL_RANKS` with no clear evidence in the provided snippet that it is used for a Level/Ranks UI display. This appears to be an unrelated change in the context of this BuildRequest.",
+      "description": "Added avatar refresh mechanism in Header using avatarKey state and useEffect tied to profile image changes, plus cache-busting query param on AvatarImage.",
+      "reason": "Not requested by the logo/icon update requirements (REQ-69/REQ-70).",
       "evidence": [
-        "frontend/src/components/RewardShopSection.tsx (imports LEVEL_RANKS)"
+        "frontend/src/components/Header.tsx"
       ]
     },
     {
-      "description": "Expanded/modified backend error-message mappings unrelated to Level rank labels or per-level upgrade pricing.",
-      "reason": "The BuildRequest focuses on rank labels and level upgrade pricing; the diff modifies `getBackendErrorMessage` with multiple mappings (e.g., stopwatch, streak freeze) that are not part of REQ-66/67/68.",
+      "description": "Updated project_state.json summary to describe unrelated features (Streak Freeze, heatmaps, milestone rewards, reminders).",
+      "reason": "BuildRequest states no backend/canister changes and non-goals include adding new product features; changing project state to expanded feature scope is unrequested for a logo/icon swap.",
       "evidence": [
-        "frontend/src/utils/backendErrorMessage.ts"
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.72,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/ProfileSection.tsx",
-    "frontend/src/components/RewardShopSection.tsx",
-    "frontend/src/utils/backendErrorMessage.ts",
-    "frontend/src/utils/levelRanks.ts",
+    "frontend/index.html",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/LoginScreen.tsx",
     "project_state.json"
   ]
 }

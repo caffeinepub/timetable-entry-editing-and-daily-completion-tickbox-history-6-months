@@ -1,53 +1,57 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Level ranks label consistency + per-level upgrade cost display and purchase UI",
+  "title": "Replace Scholar Gold logo and icon assets with new gold circular v3 design",
   "requirements": [
     {
-      "id": "REQ-66",
-      "summary": "Ensure the 5 Level rank labels are displayed consistently across the UI and legacy \"Noob 🫠\" is never shown.",
+      "id": "REQ-69",
+      "summary": "Add new cache-safe Scholar Gold PNG logo/app-icon assets (v3) matching the provided gold circular reference design in standard sizes.",
       "acceptanceCriteria": [
-        "Wherever the app displays the rank list (including any Ranks UI and Level UI), the ranks appear exactly as: Noob; Beginner 📈; Advanced Student 💪🏻; Pro Student 🔥; Sigma Student 🗿.",
-        "The Profile page level tile and any Level status UI no longer displays \"Noob 🫠\"; it displays \"Noob\" instead.",
-        "Any backend-provided Level stage display text uses \"Noob\" (not \"Noob 🫠\") for Level 1 Noob and for any other Level’s Noob stage."
+        "New PNG image assets exist under frontend/public/assets/generated with cache-safe filenames and at minimum sizes 32x32, 192x192, and 512x512.",
+        "The exported images clearly match the reference look: navy radial background, gold circular motif/border with glow, central book icon, and readable “Scholar Gold” + “MADE BY PD” text.",
+        "The 32x32 favicon remains legible and recognizable at small size (no muddy/blurred text artifacts)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/utils/levelRanks.ts",
+          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
           "operation": "create",
-          "description": "Add a single source of truth for the 5-rank list (exact strings and order) and a small normalization helper to map any legacy UI values (e.g., \"Noob 🫠\") to \"Noob\"."
+          "description": "Add the new ornate circular gold-and-navy logo/app-icon PNG (512x512) based on Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design cues."
         },
         {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Update the Profile Level tile and any Level-related text rendered here to use the shared rank constants and normalization helper so \"Noob 🫠\" is never displayed (fallback/default should be \"Noob\")."
+          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
+          "operation": "create",
+          "description": "Add the simplified but matching gold-and-navy icon PNG (192x192) derived from the same v3 design."
         },
         {
-          "path": "frontend/src/components/RewardShopSection.tsx",
-          "operation": "modify",
-          "description": "Update the \"Ranks\" tab content to explicitly render the 5-rank list using the shared rank constants so the list appears exactly as required and remains consistent across the app."
+          "path": "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png",
+          "operation": "create",
+          "description": "Add the highly legible small favicon PNG (32x32) derived from the same v3 design, optimized for clarity at small size."
         }
       ]
     },
     {
-      "id": "REQ-67",
-      "summary": "Display and execute Level upgrades using backend-provided nextStage.requiredCoins (per-level increasing cost) with immediate-next-stage purchase and English error handling.",
+      "id": "REQ-70",
+      "summary": "Update favicon/app-icon links and in-app brand logo references to use the new v3 cache-safe icon filenames (replace all v2 references).",
       "acceptanceCriteria": [
-        "Backend `getCurrentAndNextLevelStage()` (or equivalent existing Level status method) returns `nextStage.requiredCoins` that matches: Level 1 upgrades = 50; Level 2 upgrades = 100; Level 3 upgrades = 150; ...; Level 50 upgrades = 2500 (for any paid upgrade within that Level).",
-        "Backend purchase/upgrade method enforces: Level 1 - Noob is free and cannot be “purchased”; only the immediate next stage can be purchased; the coin amount deducted equals the required cost for the next stage’s Level number; and max level remains Level 50 - Sigma Student 🗿.",
-        "Frontend displays the next upgrade cost using the backend-provided value and does not hard-code 50/100; upgrading at Level 2 correctly shows 100 coins, and upgrading at Level 3 correctly shows 150 coins.",
-        "Attempting to upgrade without enough coins fails with an English user-facing error (via existing error mapping/toast behavior), and the user’s coin balance and level status remain unchanged after the failed attempt."
+        "frontend/index.html no longer references scholar-gold-*-v2.* files and instead references the new v3 (or otherwise cache-safe) filenames for 32x32, 192x192, and 512x512 icons.",
+        "frontend/src/components/Header.tsx and frontend/src/components/LoginScreen.tsx no longer reference /assets/generated/scholar-gold-app-icon-v2.dim_512x512.png and instead reference the new logo/app-icon filename.",
+        "After a normal reload (no manual cache clearing), the browser tab favicon and the in-app brand logo both display the new gold circular design."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProfileSection.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Add a Level status + upgrade panel that uses useGetCurrentAndNextLevelStage() and usePurchaseNextLevelStage() to show current stage, next stage, and nextStage.requiredCoins from the backend; disable the upgrade action when not allowed (e.g., max level reached or hasEnoughCoins=false), and on upgrade attempt show success/error toasts via existing behavior."
+          "description": "Replace v2 icon link hrefs with the new v3 generated asset paths: frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png, frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png, and frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png."
         },
         {
-          "path": "frontend/src/utils/backendErrorMessage.ts",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Extend error-string mapping for Level upgrade purchase failures (especially insufficient coins / not allowed upgrade messages) to ensure the user always sees a clear English error via the existing toast flow."
+          "description": "Update the brand logo <img> src to reference the new v3 logo/app-icon asset (frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png) and remove any v2 filename usage."
+        },
+        {
+          "path": "frontend/src/components/LoginScreen.tsx",
+          "operation": "modify",
+          "description": "Update the login header brand logo <img> src to reference the new v3 logo/app-icon asset (frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png) and remove any v2 filename usage."
         }
       ]
     }

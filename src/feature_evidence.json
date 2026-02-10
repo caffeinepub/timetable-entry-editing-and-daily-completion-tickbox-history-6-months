@@ -2,13 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-level-rank-labels-shown-in-the-app-to-exactly-use-this-5-rank-list-in-this-order-for-every-level-noob-beginner-advanced-student-pro-student-sigma-student-i-e-remove-the-emoji-from-the-noob-rank-everywhere-and-ensure-consistent-spelling-casing-across-ui-and-backend-derived-display-text",
-      "featureTitle": "Update the Level rank labels shown in the app to exactly use this 5-rank list (in this order) for every Level: \"Noob\", \"Beginner 📈\", \"Advanced Student 💪🏻\", \"Pro Student 🔥\", \"Sigma Student 🗿\" (i.e., remove the 🫠 emoji from the Noob rank everywhere and ensure consistent spelling/casing across UI and backend-derived display text).",
-      "files": [
-        "frontend/src/components/ProfileSection.tsx",
-        "frontend/src/components/RewardShopSection.tsx",
-        "frontend/src/utils/levelRanks.ts"
-      ],
+      "featureId": "feature-generate-a-new-scholar-gold-logo-app-icon-image-that-visually-matches-the-user-provided-reference-uploaded-screenshot-2026-0210-153957-jpg-and-the-provided-html-css-design-deep-navy-radial-gradient-background-ornate-gold-circular-border-with-gold-glow-central-book-icon-and-the-text-scholar-gold-with-metallic-gold-styling-plus-the-subtitle-made-by-pd-export-as-png-assets-in-standard-icon-sizes",
+      "featureTitle": "Generate a new Scholar Gold logo/app-icon image that visually matches the user-provided reference (uploaded Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design): deep navy radial-gradient background, ornate/gold circular border with gold glow, central book icon, and the text “Scholar Gold” with metallic gold styling plus the subtitle “MADE BY PD”. Export as PNG assets in standard icon sizes.",
+      "files": [],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
@@ -21,16 +17,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-66"
+        "REQ-69"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-revise-the-level-upgrade-coin-cost-rules-end-to-end-so-the-required-coin-cost-depends-on-the-level-number-all-paid-upgrades-within-level-1-cost-50-coins-all-paid-upgrades-within-level-2-cost-100-coins-and-for-each-subsequent-level-up-to-level-50-the-paid-upgrade-cost-increases-by-50-coins-per-level-i-e-paidupgradecost-level-level-50-keep-the-initial-stage-level-1-noob-free-0-coins-keep-the-rule-that-level-number-stays-the-same-across-its-5-ranks-before-incrementing-and-keep-the-rule-that-users-can-only-purchase-the-immediate-next-stage-no-skipping",
-      "featureTitle": "Revise the Level upgrade coin-cost rules end-to-end so the required coin cost depends on the Level number: all paid upgrades within Level 1 cost 50 coins; all paid upgrades within Level 2 cost 100 coins; and for each subsequent Level up to Level 50 the paid upgrade cost increases by 50 coins per Level (i.e., paidUpgradeCost(level) = level * 50). Keep the initial stage (Level 1 - Noob) free (0 coins), keep the rule that Level number stays the same across its 5 ranks before incrementing, and keep the rule that users can only purchase the immediate next stage (no skipping).",
+      "featureId": "feature-update-all-frontend-references-that-currently-use-the-v2-scholar-gold-icon-filenames-to-use-the-newly-generated-cache-safe-filenames-including-1-favicon-app-icon-links-in-frontend-index-html-and-2-the-brand-logo-image-rendered-in-the-authenticated-header-and-the-login-screen-header",
+      "featureTitle": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
       "files": [
-        "frontend/src/components/ProfileSection.tsx",
-        "frontend/src/utils/backendErrorMessage.ts"
+        "frontend/index.html",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/LoginScreen.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -44,7 +41,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-67"
+        "REQ-70"
       ],
       "confidence": "high"
     }

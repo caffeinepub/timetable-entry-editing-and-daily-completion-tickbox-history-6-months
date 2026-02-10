@@ -1,74 +1,77 @@
 {
   "kind": "build_request",
-  "title": "Update Level rank labels and apply per-level increasing coin cost (Level 1 = 50, Level 2 = 100, +50 per level up to 50)",
+  "title": "Update Scholar Gold logo to match provided gold circular design and replace app icons",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-66",
-      "text": "Update the Level rank labels shown in the app to exactly use this 5-rank list (in this order) for every Level: \"Noob\", \"Beginner 📈\", \"Advanced Student 💪🏻\", \"Pro Student 🔥\", \"Sigma Student 🗿\" (i.e., remove the 🫠 emoji from the Noob rank everywhere and ensure consistent spelling/casing across UI and backend-derived display text).",
-      "target": "both",
+      "id": "REQ-69",
+      "text": "Generate a new Scholar Gold logo/app-icon image that visually matches the user-provided reference (uploaded Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design): deep navy radial-gradient background, ornate/gold circular border with gold glow, central book icon, and the text “Scholar Gold” with metallic gold styling plus the subtitle “MADE BY PD”. Export as PNG assets in standard icon sizes.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "1st lv You want the ranks list to show:\nNoob\nBeginner 📈\nAdvanced Student 💪🏻\nPro Student 🔥\nSigma Student 🗿. cost 50 next lv 2 You want the ranks list to show:\nNoob\nBeginner 📈\nAdvanced Student 💪🏻\nPro Student 🔥\nSigma Student 🗿 cost 100 and till 50 it increases 50"
+          "Make the logo like this. Use photo or following code",
+          "<div class=\"gold-text\">Scholar Gold</div>\n  <div class=\"subtitle\">MADE BY PD</div>",
+          "The user has uploaded 1 image(s): Screenshot_2026_0210_153957.jpg."
         ]
       },
       "acceptanceCriteria": [
-        "Wherever the app displays the rank list (including any Ranks UI and Level UI), the ranks appear exactly as: Noob; Beginner 📈; Advanced Student 💪🏻; Pro Student 🔥; Sigma Student 🗿.",
-        "The Profile page level tile and any Level status UI no longer displays \"Noob 🫠\"; it displays \"Noob\" instead.",
-        "Any backend-provided Level stage display text uses \"Noob\" (not \"Noob 🫠\") for Level 1 Noob and for any other Level’s Noob stage."
+        "New PNG image assets exist under frontend/public/assets/generated with cache-safe filenames and at minimum sizes 32x32, 192x192, and 512x512.",
+        "The exported images clearly match the reference look: navy radial background, gold circular motif/border with glow, central book icon, and readable “Scholar Gold” + “MADE BY PD” text.",
+        "The 32x32 favicon remains legible and recognizable at small size (no muddy/blurred text artifacts)."
       ]
     },
     {
-      "id": "REQ-67",
-      "text": "Revise the Level upgrade coin-cost rules end-to-end so the required coin cost depends on the Level number: all paid upgrades within Level 1 cost 50 coins; all paid upgrades within Level 2 cost 100 coins; and for each subsequent Level up to Level 50 the paid upgrade cost increases by 50 coins per Level (i.e., paidUpgradeCost(level) = level * 50). Keep the initial stage (Level 1 - Noob) free (0 coins), keep the rule that Level number stays the same across its 5 ranks before incrementing, and keep the rule that users can only purchase the immediate next stage (no skipping).",
-      "target": "both",
+      "id": "REQ-70",
+      "text": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "Sigma Student 🗿. cost 50 next lv 2 ... Sigma Student 🗿 cost 100 and till 50 it increases 50"
+          "Make the logo like this. Use photo or following code"
         ]
       },
       "acceptanceCriteria": [
-        "Backend `getCurrentAndNextLevelStage()` (or equivalent existing Level status method) returns `nextStage.requiredCoins` that matches: Level 1 upgrades = 50; Level 2 upgrades = 100; Level 3 upgrades = 150; ...; Level 50 upgrades = 2500 (for any paid upgrade within that Level).",
-        "Backend purchase/upgrade method enforces: Level 1 - Noob is free and cannot be “purchased”; only the immediate next stage can be purchased; the coin amount deducted equals the required cost for the next stage’s Level number; and max level remains Level 50 - Sigma Student 🗿.",
-        "Frontend displays the next upgrade cost using the backend-provided value and does not hard-code 50/100; upgrading at Level 2 correctly shows 100 coins, and upgrading at Level 3 correctly shows 150 coins.",
-        "Attempting to upgrade without enough coins fails with an English user-facing error (via existing error mapping/toast behavior), and the user’s coin balance and level status remain unchanged after the failed attempt."
-      ]
-    },
-    {
-      "id": "REQ-68",
-      "text": "Ensure existing users with previously stored Level stage data continue to work after changing the Noob label and pricing rules, without breaking Level status fetching or purchase flow; normalize/handle any legacy stored Noob rank values (e.g., \"Noob 🫠\") so users do not get stuck or see inconsistent labels.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ]
-      },
-      "acceptanceCriteria": [
-        "For a user whose stored level stage rank value is the legacy string \"Noob 🫠\", the backend returns Level status with rank \"Noob\" and a correctly formatted display text (e.g., \"Level 1 - Noob\").",
-        "Existing users can still call the Level status method and purchase the next stage successfully under the new pricing rules.",
-        "No backend traps occur solely due to legacy level rank strings existing in persisted state."
+        "frontend/index.html no longer references scholar-gold-*-v2.* files and instead references the new v3 (or otherwise cache-safe) filenames for 32x32, 192x192, and 512x512 icons.",
+        "frontend/src/components/Header.tsx and frontend/src/components/LoginScreen.tsx no longer reference /assets/generated/scholar-gold-app-icon-v2.dim_512x512.png and instead reference the new logo/app-icon filename.",
+        "After a normal reload (no manual cache clearing), the browser tab favicon and the in-app brand logo both display the new gold circular design."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
-    "Only introduce `backend/migration.mo` if a state upgrade is strictly required; prefer backward-compatible normalization when possible.",
-    "Do not edit frontend files under `frontend/src/components/ui`, `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx`.",
-    "Use English for any user-facing text."
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything in frontend/src/components/ui (compose existing UI components instead).",
+    "Keep all user-facing text in English.",
+    "No backend/canister changes are required for this logo update."
   ],
   "nonGoals": [
-    "Adding new ranks beyond the 5 specified ranks.",
-    "Changing the rule that Level number stays the same across the 5 ranks before incrementing to the next Level.",
-    "Allowing users to skip stages or buy non-immediate stages."
+    "Changing the app name (it must remain “Scholar Gold”).",
+    "Adding new product features or changing authentication/profile/business logic.",
+    "Reworking overall app theming beyond what is necessary to swap the logo/icon assets."
   ],
   "imageRequirements": {
-    "required": [],
-    "edits": []
+    "required": [
+      "Ornate circular gold-and-navy logo with central book icon and gold title/subtitle (scholar-gold-app-icon-v3.dim_512x512.png)",
+      "Simplified but matching gold-and-navy favicon/icon (scholar-gold-app-icon-v3.dim_192x192.png)",
+      "Highly legible small favicon version of the same mark (scholar-gold-favicon-v3.dim_32x32.png)"
+    ],
+    "edits": [
+      "Screenshot_2026_0210_153957.jpg > scholar-gold-app-icon-v3.dim_512x512.png",
+      "Screenshot_2026_0210_153957.jpg > scholar-gold-app-icon-v3.dim_192x192.png",
+      "Screenshot_2026_0210_153957.jpg > scholar-gold-favicon-v3.dim_32x32.png"
+    ]
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
