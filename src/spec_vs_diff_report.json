@@ -1,45 +1,38 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T10:16:22.639Z",
-  "summary": "Icon filename references were updated to v3 in frontend/index.html, Header.tsx, and LoginScreen.tsx. However, the diff summary shows no newly added PNG assets under frontend/public/assets/generated, so the core asset-generation requirement is not evidenced. Several unrelated behavioral changes (auth retry/clear, avatar refresh logic, project_state scope text) appear in the modified files without being requested by the BuildRequest.",
+  "generatedAt": "2026-02-10T13:10:50.724Z",
+  "summary": "Frontend references to v4 icon filenames were updated in Header, LoginScreen, and index.html, but the diff does not show any newly generated PNG icon assets being added under frontend/public/assets/generated. Several unrelated changes/descriptions also appear (e.g., avatar refresh logic, expanded project_state summary), which are outside the logo-mismatch scope.",
   "missing_requirements": [
     {
-      "id": "REQ-69",
-      "requirement": "Generate new Scholar Gold logo/app-icon PNG assets (32x32, 192x192, 512x512) matching the provided gold circular design and place them under frontend/public/assets/generated with cache-safe filenames.",
-      "reason": "The diff shows no added files and provides no evidence that new PNG assets were created/added under frontend/public/assets/generated; only code references to v3 filenames were updated.",
+      "id": "REQ-71",
+      "requirement": "Regenerate the Scholar Gold logo/app-icon/favicons from Screenshot_2026_0210_153957-1.jpg, export at least 512x512, 192x192, and 32x32 PNGs, and use fresh cache-safe filenames stored under frontend/public/assets/generated.",
+      "reason": "The diff shows no added static asset files (Added: 0) and no evidence of new PNGs being created/committed under frontend/public/assets/generated; only code references were changed to point at v4 filenames.",
       "evidence": [
-        "File diff summary: \"Added: 0\"",
-        "frontend/index.html (references v3 PNGs but does not prove assets exist)",
-        "frontend/src/components/Header.tsx (references v3 PNG)",
-        "frontend/src/components/LoginScreen.tsx (references v3 PNG)"
+        "File diff summary header: \"Added: 0\"",
+        "frontend/index.html",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/LoginScreen.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/changed authentication handling in Header: retry login on 'User is already authenticated', clear query cache on logout, and new error logging.",
-      "reason": "BuildRequest explicitly scoped to swapping logo/icon assets and updating references; it did not request any authentication or query-cache behavior changes.",
+      "description": "Avatar refresh behavior in Header (state + effect to force avatar re-render when profile image changes).",
+      "reason": "Not requested by REQ-71/REQ-72 (scope limited to regenerating icons and updating references).",
       "evidence": [
-        "frontend/src/components/Header.tsx"
+        "frontend/src/components/Header.tsx (adds avatarKey state, useEffect on profile?.profileImage, and query param ?v=...)"
       ]
     },
     {
-      "description": "Added avatar refresh mechanism in Header using avatarKey state and useEffect tied to profile image changes, plus cache-busting query param on AvatarImage.",
-      "reason": "Not requested by the logo/icon update requirements (REQ-69/REQ-70).",
+      "description": "Expanded/changed project_state.json summary describing unrelated features (e.g., purchasable “Streak Freeze”, heatmaps, milestone rewards, reminders).",
+      "reason": "BuildRequest explicitly says not to introduce new UI features unrelated to the logo/icon mismatch and not to change backend logic/schemas for this request; updating project state to reflect unrelated features is outside scope.",
       "evidence": [
-        "frontend/src/components/Header.tsx"
-      ]
-    },
-    {
-      "description": "Updated project_state.json summary to describe unrelated features (Streak Freeze, heatmaps, milestone rewards, reminders).",
-      "reason": "BuildRequest states no backend/canister changes and non-goals include adding new product features; changing project state to expanded feature scope is unrequested for a logo/icon swap.",
-      "evidence": [
-        "project_state.json"
+        "project_state.json (truncated) summary field content"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/index.html",

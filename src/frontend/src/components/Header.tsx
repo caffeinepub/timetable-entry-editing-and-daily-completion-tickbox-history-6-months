@@ -49,7 +49,7 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <img 
-            src="/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png" 
+            src="/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png" 
             alt="Scholar Gold" 
             className="h-10 w-10 rounded-full object-cover"
           />

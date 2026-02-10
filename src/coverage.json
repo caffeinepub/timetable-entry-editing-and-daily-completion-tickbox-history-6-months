@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T10:16:22.643Z",
+  "generatedAt": "2026-02-10T13:10:50.729Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,23 +11,23 @@
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-69",
-        "summary": "Generate a new Scholar Gold logo/app-icon image that visually matches the user-provided reference (uploaded Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design): deep navy radial-gradient background, ornate/gold circular border with gold glow, central book icon, and the text “Scholar Gold” with metallic gold styling plus the subtitle “MADE BY PD”. Export as PNG assets in standard icon sizes.",
+        "id": "REQ-71",
+        "summary": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the latest user-uploaded reference image `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border + deep navy radial background + central gold book icon + “SCHOLAR GOLD” text + “made by PD” subtitle), exporting PNG assets in standard icon sizes and using fresh cache-safe filenames.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
-          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
-          "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png"
+          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
+          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
+          "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png"
         ],
         "matchedFiles": [
-          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
-          "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
-          "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png"
+          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
+          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
+          "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png"
         ]
       },
       {
-        "id": "REQ-70",
-        "summary": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
+        "id": "REQ-72",
+        "summary": "Update all frontend references to use the newly generated cache-safe Scholar Gold icon filenames for: (1) browser favicon and app icons in `frontend/index.html`, and (2) the brand logo image rendered in `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx`, ensuring the displayed logo matches the latest reference image after a normal reload (no manual cache clearing).",
         "status": "implemented",
         "plannedFiles": [
           "frontend/index.html",
@@ -48,9 +48,9 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/index.html",
-    "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
-    "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
-    "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png",
+    "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
+    "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
+    "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png",
     "frontend/src/components/Header.tsx",
     "frontend/src/components/LoginScreen.tsx",
     "project_state.json",

@@ -1,67 +1,61 @@
 {
   "kind": "build_request",
-  "title": "Update Scholar Gold logo to match provided gold circular design and replace app icons",
+  "title": "Fix Scholar Gold logo mismatch by regenerating icons from the latest uploaded reference and updating all frontend references",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-69",
-      "text": "Generate a new Scholar Gold logo/app-icon image that visually matches the user-provided reference (uploaded Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design): deep navy radial-gradient background, ornate/gold circular border with gold glow, central book icon, and the text “Scholar Gold” with metallic gold styling plus the subtitle “MADE BY PD”. Export as PNG assets in standard icon sizes.",
+      "id": "REQ-71",
+      "text": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the latest user-uploaded reference image `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border + deep navy radial background + central gold book icon + “SCHOLAR GOLD” text + “made by PD” subtitle), exporting PNG assets in standard icon sizes and using fresh cache-safe filenames.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "Make the logo like this. Use photo or following code",
-          "<div class=\"gold-text\">Scholar Gold</div>\n  <div class=\"subtitle\">MADE BY PD</div>",
-          "The user has uploaded 1 image(s): Screenshot_2026_0210_153957.jpg."
+          "Logo is not same I said"
         ]
       },
       "acceptanceCriteria": [
-        "New PNG image assets exist under frontend/public/assets/generated with cache-safe filenames and at minimum sizes 32x32, 192x192, and 512x512.",
-        "The exported images clearly match the reference look: navy radial background, gold circular motif/border with glow, central book icon, and readable “Scholar Gold” + “MADE BY PD” text.",
-        "The 32x32 favicon remains legible and recognizable at small size (no muddy/blurred text artifacts)."
+        "New PNG icon assets are generated from `Screenshot_2026_0210_153957-1.jpg` and are visually consistent with the uploaded reference (ornate gold ring, navy radial background, book icon, correct title/subtitle).",
+        "Generated icon assets use NEW filenames (not the existing `*-v3.*` filenames) to avoid browser caching issues.",
+        "At minimum, the generated set includes 512x512, 192x192, and 32x32 PNGs."
       ]
     },
     {
-      "id": "REQ-70",
-      "text": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
+      "id": "REQ-72",
+      "text": "Update all frontend references to use the newly generated cache-safe Scholar Gold icon filenames for: (1) browser favicon and app icons in `frontend/index.html`, and (2) the brand logo image rendered in `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx`, ensuring the displayed logo matches the latest reference image after a normal reload (no manual cache clearing).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-5"
         ],
         "quotes": [
-          "Make the logo like this. Use photo or following code"
+          "Logo is not same I said"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/index.html no longer references scholar-gold-*-v2.* files and instead references the new v3 (or otherwise cache-safe) filenames for 32x32, 192x192, and 512x512 icons.",
-        "frontend/src/components/Header.tsx and frontend/src/components/LoginScreen.tsx no longer reference /assets/generated/scholar-gold-app-icon-v2.dim_512x512.png and instead reference the new logo/app-icon filename.",
-        "After a normal reload (no manual cache clearing), the browser tab favicon and the in-app brand logo both display the new gold circular design."
+        "`frontend/index.html` no longer references `/assets/generated/scholar-gold-*-v3.*` and instead references the newly generated cache-safe icon filenames for 32x32, 192x192, and 512x512.",
+        "`frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx` no longer reference `/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png` and instead reference the newly generated 512x512 icon filename.",
+        "After a hard refresh is NOT required: a normal reload shows the updated icon in the browser tab favicon and in both the authenticated header and login header brand mark."
       ]
     }
   ],
   "constraints": [
-    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or anything in frontend/src/components/ui (compose existing UI components instead).",
-    "Keep all user-facing text in English.",
-    "No backend/canister changes are required for this logo update."
+    "Do not modify any files under frontend immutable paths (e.g., `frontend/src/main.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/hooks/useInternetIdentity.ts(x)`, and `frontend/src/components/ui/*`).",
+    "Store generated icon assets as static files under `frontend/public/assets/generated` and reference them directly (do not serve generated images from the backend).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Changing the app name (it must remain “Scholar Gold”).",
-    "Adding new product features or changing authentication/profile/business logic.",
-    "Reworking overall app theming beyond what is necessary to swap the logo/icon assets."
+    "Do not change the app name text (it should remain “Scholar Gold”).",
+    "Do not introduce new UI features unrelated to the logo/icon mismatch.",
+    "Do not change backend logic or schemas for this request."
   ],
   "imageRequirements": {
-    "required": [
-      "Ornate circular gold-and-navy logo with central book icon and gold title/subtitle (scholar-gold-app-icon-v3.dim_512x512.png)",
-      "Simplified but matching gold-and-navy favicon/icon (scholar-gold-app-icon-v3.dim_192x192.png)",
-      "Highly legible small favicon version of the same mark (scholar-gold-favicon-v3.dim_32x32.png)"
-    ],
+    "required": [],
     "edits": [
-      "Screenshot_2026_0210_153957.jpg > scholar-gold-app-icon-v3.dim_512x512.png",
-      "Screenshot_2026_0210_153957.jpg > scholar-gold-app-icon-v3.dim_192x192.png",
-      "Screenshot_2026_0210_153957.jpg > scholar-gold-favicon-v3.dim_32x32.png"
+      "Update Scholar Gold icons to match the latest uploaded reference (Screenshot_2026_0210_153957-1.jpg > scholar-gold-app-icon-v4.dim_512x512.png)",
+      "Update Scholar Gold icons to match the latest uploaded reference (Screenshot_2026_0210_153957-1.jpg > scholar-gold-app-icon-v4.dim_192x192.png)",
+      "Update Scholar Gold icons to match the latest uploaded reference (Screenshot_2026_0210_153957-1.jpg > scholar-gold-favicon-v4.dim_32x32.png)"
     ]
   },
   "userProfileUpdate": {

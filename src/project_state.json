@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 37,
+  "projectStateVersion": 39,
   "summary": "Scope expanded to add a purchasable “Streak Freeze” item (50 coins) that prevents streak reset on a missed day, plus new calendar/heatmap-style visualizations (streak calendar marking freeze-used days and a GitHub-style activity heatmap for task completion), new milestone rewards (30-day streak grants 500 coins + a “Scholar Gold” badge reflected in the Ranks section), and an 8:00 PM reminder notification if no subjects were checked off that day.",
   "architectural_notes": [
     "Do not rename the app (explicit requirement).",
@@ -21,10 +21,11 @@
     "Avatar is not being added/applied (user reports avatar not added).",
     "Profile photo/avatar is still not working as expected after the latest deployment (user reports it still fails).",
     "Syllabus editing is not currently available in the UI (no edit logic/buttons present), causing user inability to edit syllabus.",
-    "Pomodoro timer duration/settings cannot be changed (user reports unable to change Pomodoro timer)."
+    "Pomodoro timer duration/settings cannot be changed (user reports unable to change Pomodoro timer).",
+    "Deployed logo/brand mark still does not match the user-provided reference (user reports: \"Logo is not same\")."
   ],
-  "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Ornate circular gold-and-navy logo with central book icon and gold title/subtitle (scholar-gold-app-icon-v3.dim_512x512.png)\n- Simplified but matching gold-and-navy favicon/icon (scholar-gold-app-icon-v3.dim_192x192.png)\n- Highly legible small favicon version of the same mark (scholar-gold-favicon-v3.dim_32x32.png)\n\n## Edit Images\n- Screenshot_2026_0210_153957.jpg > scholar-gold-app-icon-v3.dim_512x512.png\n- Screenshot_2026_0210_153957.jpg > scholar-gold-app-icon-v3.dim_192x192.png\n- Screenshot_2026_0210_153957.jpg > scholar-gold-favicon-v3.dim_32x32.png",
+  "isFixRequest": true,
+  "imageRequirements": "## Edit Images\n- Update Scholar Gold icons to match the latest uploaded reference (Screenshot_2026_0210_153957-1.jpg > scholar-gold-app-icon-v4.dim_512x512.png)\n- Update Scholar Gold icons to match the latest uploaded reference (Screenshot_2026_0210_153957-1.jpg > scholar-gold-app-icon-v4.dim_192x192.png)\n- Update Scholar Gold icons to match the latest uploaded reference (Screenshot_2026_0210_153957-1.jpg > scholar-gold-favicon-v4.dim_32x32.png)",
   "existing_features": [
     {
       "id": "feature-add-support-for-editing-an-existing-timetable-entry-while-keeping-the-schedule-the-same-the-entry-s-date-time-starttime-endtime-must-not-change-but-the-user-must-be-able-to-update-non-schedule-fields-at-minimum-title-optionally-activitytype-and-colorcode",
@@ -471,6 +472,22 @@
       "title": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
       "reqIds": [
         "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-regenerate-the-scholar-gold-logo-app-icon-favicons-so-they-visually-match-the-latest-user-uploaded-reference-image-screenshot-2026-0210-153957-1-jpg-ornate-gold-circular-border-deep-navy-radial-background-central-gold-book-icon-scholar-gold-text-made-by-pd-subtitle-exporting-png-assets-in-standard-icon-sizes-and-using-fresh-cache-safe-filenames",
+      "title": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the latest user-uploaded reference image `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border + deep navy radial background + central gold book icon + “SCHOLAR GOLD” text + “made by PD” subtitle), exporting PNG assets in standard icon sizes and using fresh cache-safe filenames.",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-all-frontend-references-to-use-the-newly-generated-cache-safe-scholar-gold-icon-filenames-for-1-browser-favicon-and-app-icons-in-frontend-index-html-and-2-the-brand-logo-image-rendered-in-frontend-src-components-header-tsx-and-frontend-src-components-loginscreen-tsx-ensuring-the-displayed-logo-matches-the-latest-reference-image-after-a-normal-reload-no-manual-cache-clearing",
+      "title": "Update all frontend references to use the newly generated cache-safe Scholar Gold icon filenames for: (1) browser favicon and app icons in `frontend/index.html`, and (2) the brand logo image rendered in `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx`, ensuring the displayed logo matches the latest reference image after a normal reload (no manual cache clearing).",
+      "reqIds": [
+        "REQ-72"
       ],
       "version": 1
     }

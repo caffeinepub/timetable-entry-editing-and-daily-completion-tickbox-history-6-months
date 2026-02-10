@@ -1,13 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Update Scholar Gold branding to use a new gold circular logo design (matching the provided reference) and replace all app icon/favicon assets and references with cache-safe new filenames.
+**Goal:** Fix the Scholar Gold logo mismatch by regenerating the app icon and favicon assets to match the latest uploaded reference, and update all frontend references to use the new cache-safe filenames.
 
 **Planned changes:**
-- Create new PNG logo/icon assets that match the reference look (navy radial-gradient background, ornate gold circular border with glow, central book icon, metallic “Scholar Gold” text, and subtitle “MADE BY PD”) in sizes 512x512, 192x192, and 32x32.
-- Replace frontend references to the existing v2 icon files with the new cache-safe filenames in:
-  - `frontend/index.html` (favicon/app icon links)
-  - `frontend/src/components/Header.tsx` (authenticated header brand logo)
-  - `frontend/src/components/LoginScreen.tsx` (login screen header brand logo)
+- Regenerate Scholar Gold PNG icon assets from `Screenshot_2026_0210_153957-1.jpg`, matching the ornate gold circular border, deep navy radial background, central gold book icon, “SCHOLAR GOLD” text, and “made by PD” subtitle.
+- Export at least 512x512, 192x192, and 32x32 PNGs using fresh cache-safe filenames and store them under `frontend/public/assets/generated`.
+- Update `frontend/index.html` to reference the new favicon/app icon filenames (32x32, 192x192, 512x512) instead of any `*-v3.*` assets.
+- Update `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx` to reference the new 512x512 brand logo icon filename instead of the existing `*-v3.*` asset.
 
-**User-visible outcome:** After a normal reload, the browser favicon and in-app brand logo display the new gold circular Scholar Gold design, and the app uses the updated icon set.
+**User-visible outcome:** After a normal reload, the browser tab favicon and the brand logo shown on the login screen and header match the latest Scholar Gold reference image without requiring manual cache clearing.

@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-generate-a-new-scholar-gold-logo-app-icon-image-that-visually-matches-the-user-provided-reference-uploaded-screenshot-2026-0210-153957-jpg-and-the-provided-html-css-design-deep-navy-radial-gradient-background-ornate-gold-circular-border-with-gold-glow-central-book-icon-and-the-text-scholar-gold-with-metallic-gold-styling-plus-the-subtitle-made-by-pd-export-as-png-assets-in-standard-icon-sizes",
-      "featureTitle": "Generate a new Scholar Gold logo/app-icon image that visually matches the user-provided reference (uploaded Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design): deep navy radial-gradient background, ornate/gold circular border with gold glow, central book icon, and the text “Scholar Gold” with metallic gold styling plus the subtitle “MADE BY PD”. Export as PNG assets in standard icon sizes.",
+      "featureId": "feature-regenerate-the-scholar-gold-logo-app-icon-favicons-so-they-visually-match-the-latest-user-uploaded-reference-image-screenshot-2026-0210-153957-1-jpg-ornate-gold-circular-border-deep-navy-radial-background-central-gold-book-icon-scholar-gold-text-made-by-pd-subtitle-exporting-png-assets-in-standard-icon-sizes-and-using-fresh-cache-safe-filenames",
+      "featureTitle": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the latest user-uploaded reference image `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border + deep navy radial background + central gold book icon + “SCHOLAR GOLD” text + “made by PD” subtitle), exporting PNG assets in standard icon sizes and using fresh cache-safe filenames.",
       "files": [],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,13 +17,13 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-69"
+        "REQ-71"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-all-frontend-references-that-currently-use-the-v2-scholar-gold-icon-filenames-to-use-the-newly-generated-cache-safe-filenames-including-1-favicon-app-icon-links-in-frontend-index-html-and-2-the-brand-logo-image-rendered-in-the-authenticated-header-and-the-login-screen-header",
-      "featureTitle": "Update all frontend references that currently use the v2 Scholar Gold icon filenames to use the newly generated cache-safe filenames, including (1) favicon/app icon links in frontend/index.html and (2) the brand logo image rendered in the authenticated Header and the Login screen Header.",
+      "featureId": "feature-update-all-frontend-references-to-use-the-newly-generated-cache-safe-scholar-gold-icon-filenames-for-1-browser-favicon-and-app-icons-in-frontend-index-html-and-2-the-brand-logo-image-rendered-in-frontend-src-components-header-tsx-and-frontend-src-components-loginscreen-tsx-ensuring-the-displayed-logo-matches-the-latest-reference-image-after-a-normal-reload-no-manual-cache-clearing",
+      "featureTitle": "Update all frontend references to use the newly generated cache-safe Scholar Gold icon filenames for: (1) browser favicon and app icons in `frontend/index.html`, and (2) the brand logo image rendered in `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx`, ensuring the displayed logo matches the latest reference image after a normal reload (no manual cache clearing).",
       "files": [
         "frontend/index.html",
         "frontend/src/components/Header.tsx",
@@ -41,7 +41,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-70"
+        "REQ-72"
       ],
       "confidence": "high"
     }

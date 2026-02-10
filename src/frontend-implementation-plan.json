@@ -1,57 +1,57 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace Scholar Gold logo and icon assets with new gold circular v3 design",
+  "title": "Regenerate Scholar Gold icon set from latest reference and update all frontend references",
   "requirements": [
     {
-      "id": "REQ-69",
-      "summary": "Add new cache-safe Scholar Gold PNG logo/app-icon assets (v3) matching the provided gold circular reference design in standard sizes.",
+      "id": "REQ-71",
+      "summary": "Regenerate Scholar Gold logo/app-icon/favicons from the latest uploaded reference and add new cache-safe PNG icon assets in standard sizes.",
       "acceptanceCriteria": [
-        "New PNG image assets exist under frontend/public/assets/generated with cache-safe filenames and at minimum sizes 32x32, 192x192, and 512x512.",
-        "The exported images clearly match the reference look: navy radial background, gold circular motif/border with glow, central book icon, and readable “Scholar Gold” + “MADE BY PD” text.",
-        "The 32x32 favicon remains legible and recognizable at small size (no muddy/blurred text artifacts)."
+        "New PNG icon assets are generated from `Screenshot_2026_0210_153957-1.jpg` and are visually consistent with the uploaded reference (ornate gold ring, navy radial background, book icon, correct title/subtitle).",
+        "Generated icon assets use NEW filenames (not the existing `*-v3.*` filenames) to avoid browser caching issues.",
+        "At minimum, the generated set includes 512x512, 192x192, and 32x32 PNGs."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png",
+          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
           "operation": "create",
-          "description": "Add the new ornate circular gold-and-navy logo/app-icon PNG (512x512) based on Screenshot_2026_0210_153957.jpg and the provided HTML/CSS design cues."
+          "description": "Add newly generated 512x512 Scholar Gold app icon PNG that matches `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border, deep navy radial background, central gold book icon, “SCHOLAR GOLD” text, “made by PD” subtitle). Filename must be cache-safe and must not reuse any `*-v3.*` name."
         },
         {
-          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png",
+          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
           "operation": "create",
-          "description": "Add the simplified but matching gold-and-navy icon PNG (192x192) derived from the same v3 design."
+          "description": "Add newly generated 192x192 Scholar Gold app icon PNG matching the latest reference `Screenshot_2026_0210_153957-1.jpg`. Use the new v4 cache-safe filename (do not reuse any `*-v3.*` name)."
         },
         {
-          "path": "frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png",
+          "path": "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png",
           "operation": "create",
-          "description": "Add the highly legible small favicon PNG (32x32) derived from the same v3 design, optimized for clarity at small size."
+          "description": "Add newly generated 32x32 Scholar Gold favicon PNG matching the latest reference `Screenshot_2026_0210_153957-1.jpg`. Use the new v4 cache-safe filename (do not reuse any `*-v3.*` name)."
         }
       ]
     },
     {
-      "id": "REQ-70",
-      "summary": "Update favicon/app-icon links and in-app brand logo references to use the new v3 cache-safe icon filenames (replace all v2 references).",
+      "id": "REQ-72",
+      "summary": "Update all frontend favicon/app-icon and brand logo references to use the new v4 generated filenames so normal reload shows the updated logo without manual cache clearing.",
       "acceptanceCriteria": [
-        "frontend/index.html no longer references scholar-gold-*-v2.* files and instead references the new v3 (or otherwise cache-safe) filenames for 32x32, 192x192, and 512x512 icons.",
-        "frontend/src/components/Header.tsx and frontend/src/components/LoginScreen.tsx no longer reference /assets/generated/scholar-gold-app-icon-v2.dim_512x512.png and instead reference the new logo/app-icon filename.",
-        "After a normal reload (no manual cache clearing), the browser tab favicon and the in-app brand logo both display the new gold circular design."
+        "`frontend/index.html` no longer references `/assets/generated/scholar-gold-*-v3.*` and instead references the newly generated cache-safe icon filenames for 32x32, 192x192, and 512x512.",
+        "`frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx` no longer reference `/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png` and instead reference the newly generated 512x512 icon filename.",
+        "After a hard refresh is NOT required: a normal reload shows the updated icon in the browser tab favicon and in both the authenticated header and login header brand mark."
       ],
       "file_operations": [
         {
           "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Replace v2 icon link hrefs with the new v3 generated asset paths: frontend/public/assets/generated/scholar-gold-favicon-v3.dim_32x32.png, frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_192x192.png, and frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png."
+          "description": "Replace all Scholar Gold icon link references that currently point to `/assets/generated/*-v3.*` with the new cache-safe filenames: `/assets/generated/scholar-gold-favicon-v4.dim_32x32.png`, `/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png`, and `/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png`."
         },
         {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Update the brand logo <img> src to reference the new v3 logo/app-icon asset (frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png) and remove any v2 filename usage."
+          "description": "Update the brand logo `<img>` source to use `/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png` instead of the existing v3 filename so the authenticated header shows the new logo on a normal reload."
         },
         {
           "path": "frontend/src/components/LoginScreen.tsx",
           "operation": "modify",
-          "description": "Update the login header brand logo <img> src to reference the new v3 logo/app-icon asset (frontend/public/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png) and remove any v2 filename usage."
+          "description": "Update the login header brand logo `<img>` source to use `/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png` instead of the existing v3 filename so the login screen shows the new logo on a normal reload."
         }
       ]
     }
