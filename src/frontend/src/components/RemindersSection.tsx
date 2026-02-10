@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Reminder } from '../backend';
 import { mapBackendError } from '../utils/backendErrorMessage';
+import { NoteLinker } from './NoteLinker';
 
 export function RemindersSection() {
   const { data: reminders = [], isLoading } = useGetUpcomingReminders();
@@ -20,11 +21,13 @@ export function RemindersSection() {
   const [title, setTitle] = useState('');
   const [reminderDate, setReminderDate] = useState('');
   const [reminderTime, setReminderTime] = useState('');
+  const [linkedNoteId, setLinkedNoteId] = useState<bigint | null>(null);
 
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDate, setEditDate] = useState('');
   const [editTime, setEditTime] = useState('');
+  const [editLinkedNoteId, setEditLinkedNoteId] = useState<bigint | null>(null);
 
   const [deletingReminder, setDeletingReminder] = useState<Reminder | null>(null);
 
@@ -53,10 +56,12 @@ export function RemindersSection() {
       await addReminderMutation.mutateAsync({
         title,
         reminderTime: BigInt(reminderDateTime.getTime() * 1000000),
+        noteId: linkedNoteId,
       });
       setTitle('');
       setReminderDate('');
       setReminderTime('');
+      setLinkedNoteId(null);
       toast.success('Reminder set successfully!');
     } catch (error) {
       const errorMessage = mapBackendError(error);
@@ -72,6 +77,7 @@ export function RemindersSection() {
     setEditTitle(reminder.title);
     setEditDate(date.toISOString().split('T')[0]);
     setEditTime(date.toTimeString().slice(0, 5));
+    setEditLinkedNoteId(reminder.noteId || null);
   };
 
   const handleSaveEdit = async () => {
@@ -102,6 +108,7 @@ export function RemindersSection() {
         reminderId: editingReminder.id,
         title: editTitle,
         reminderTime: BigInt(reminderDateTime.getTime() * 1000000),
+        noteId: editLinkedNoteId,
       });
       setEditingReminder(null);
       toast.success('Reminder updated successfully!');
@@ -194,6 +201,13 @@ export function RemindersSection() {
               </div>
             </div>
 
+            <NoteLinker
+              linkedNoteId={linkedNoteId}
+              onLink={setLinkedNoteId}
+              onUnlink={() => setLinkedNoteId(null)}
+              onCreateAndLink={setLinkedNoteId}
+            />
+
             <Button
               onClick={handleAddReminder}
               disabled={addReminderMutation.isPending}
@@ -233,6 +247,9 @@ export function RemindersSection() {
                       <p className="text-xs text-muted-foreground">
                         {getTimeUntil(reminder.reminderTime)}
                       </p>
+                      {reminder.noteId && (
+                        <p className="text-xs text-muted-foreground">📝 Note linked</p>
+                      )}
                     </div>
                     <div className="flex gap-1">
                       <Button
@@ -260,7 +277,7 @@ export function RemindersSection() {
 
       {/* Edit Reminder Dialog */}
       <Dialog open={!!editingReminder} onOpenChange={(open) => !open && setEditingReminder(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Reminder</DialogTitle>
             <DialogDescription>Update your reminder details</DialogDescription>
@@ -295,6 +312,12 @@ export function RemindersSection() {
                 />
               </div>
             </div>
+            <NoteLinker
+              linkedNoteId={editLinkedNoteId}
+              onLink={setEditLinkedNoteId}
+              onUnlink={() => setEditLinkedNoteId(null)}
+              onCreateAndLink={setEditLinkedNoteId}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingReminder(null)}>

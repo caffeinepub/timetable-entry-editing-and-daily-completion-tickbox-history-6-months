@@ -40,7 +40,9 @@ export const Task = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
   'subject' : IDL.Text,
+  'noteId' : IDL.Opt(IDL.Nat),
   'createdAt' : Time,
+  'tags' : IDL.Vec(IDL.Text),
   'completed' : IDL.Bool,
   'description' : IDL.Text,
   'priority' : IDL.Nat,
@@ -52,6 +54,7 @@ export const UserProfile = IDL.Record({
   'coins' : IDL.Nat,
   'finishedSetup' : IDL.Bool,
   'nameChangeCount' : IDL.Nat,
+  'dailyStudyGoal' : IDL.Nat,
 });
 export const LevelStage = IDL.Record({
   'requiredCoins' : IDL.Nat,
@@ -98,6 +101,7 @@ export const TimetableTick = IDL.Record({
 export const Reminder = IDL.Record({
   'id' : IDL.Nat,
   'title' : IDL.Text,
+  'noteId' : IDL.Opt(IDL.Nat),
   'createdAt' : Time,
   'reminderTime' : IDL.Int,
 });
@@ -138,8 +142,23 @@ export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addNote' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
   'addNoteImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
-  'addReminder' : IDL.Func([IDL.Text, IDL.Int], [IDL.Nat], []),
-  'addTask' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [IDL.Nat], []),
+  'addReminder' : IDL.Func(
+      [IDL.Text, IDL.Int, IDL.Opt(IDL.Nat)],
+      [IDL.Nat],
+      [],
+    ),
+  'addTask' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Vec(IDL.Text),
+        IDL.Opt(IDL.Nat),
+      ],
+      [IDL.Nat],
+      [],
+    ),
   'addTimetableEntry' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Int, IDL.Int, IDL.Text],
       [IDL.Nat],
@@ -161,6 +180,7 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCoinBalance' : IDL.Func([], [IDL.Nat], ['query']),
   'getCurrentAndNextLevelStage' : IDL.Func([], [LevelStatus], ['query']),
+  'getDailyStudyGoal' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
   'getFocusTimerState' : IDL.Func(
       [],
       [IDL.Opt(PersistentFocusTimer)],
@@ -179,6 +199,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getStudyStreak' : IDL.Func([], [IDL.Nat], ['query']),
+  'getTasksByTag' : IDL.Func([IDL.Text], [IDL.Vec(Task)], ['query']),
   'getTimerSessions' : IDL.Func([], [IDL.Vec(TimerSessionV2)], ['query']),
   'getTimetableEntries' : IDL.Func([], [IDL.Vec(TimetableEntry)], ['query']),
   'getTimetableTickHistoryForEntry' : IDL.Func(
@@ -203,7 +224,7 @@ export const idlService = IDL.Service({
   'isBackgroundOwned' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'markProfileSetupFinished' : IDL.Func([], [], []),
-  'pausePersistentStopwatch' : IDL.Func([], [], []),
+  'pausePersistentStopwatch' : IDL.Func([], [], ['oneway']),
   'purchaseCustomBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'purchaseNextLevelStage' : IDL.Func([], [LevelStatus], []),
   'recordTimerSession' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Nat], []),
@@ -219,6 +240,7 @@ export const idlService = IDL.Service({
   'toggleTaskCompletion' : IDL.Func([IDL.Nat], [], []),
   'toggleTimetableEntryForToday' : IDL.Func([IDL.Nat], [IDL.Bool], []),
   'updateCallerProfile' : IDL.Func([IDL.Opt(ExternalBlob), IDL.Text], [], []),
+  'updateDailyStudyGoal' : IDL.Func([IDL.Nat], [IDL.Nat], []),
   'updateFocusTimerState' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
   'updateNote' : IDL.Func(
       [
@@ -231,9 +253,21 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
-  'updateReminder' : IDL.Func([IDL.Nat, IDL.Text, IDL.Int], [], []),
+  'updateReminder' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Int, IDL.Opt(IDL.Nat)],
+      [],
+      [],
+    ),
   'updateTask' : IDL.Func(
-      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [
+        IDL.Nat,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Nat,
+        IDL.Vec(IDL.Text),
+        IDL.Opt(IDL.Nat),
+      ],
       [],
       [],
     ),
@@ -279,7 +313,9 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Nat,
     'title' : IDL.Text,
     'subject' : IDL.Text,
+    'noteId' : IDL.Opt(IDL.Nat),
     'createdAt' : Time,
+    'tags' : IDL.Vec(IDL.Text),
     'completed' : IDL.Bool,
     'description' : IDL.Text,
     'priority' : IDL.Nat,
@@ -291,6 +327,7 @@ export const idlFactory = ({ IDL }) => {
     'coins' : IDL.Nat,
     'finishedSetup' : IDL.Bool,
     'nameChangeCount' : IDL.Nat,
+    'dailyStudyGoal' : IDL.Nat,
   });
   const LevelStage = IDL.Record({
     'requiredCoins' : IDL.Nat,
@@ -337,6 +374,7 @@ export const idlFactory = ({ IDL }) => {
   const Reminder = IDL.Record({
     'id' : IDL.Nat,
     'title' : IDL.Text,
+    'noteId' : IDL.Opt(IDL.Nat),
     'createdAt' : Time,
     'reminderTime' : IDL.Int,
   });
@@ -377,9 +415,20 @@ export const idlFactory = ({ IDL }) => {
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addNote' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Nat], []),
     'addNoteImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
-    'addReminder' : IDL.Func([IDL.Text, IDL.Int], [IDL.Nat], []),
+    'addReminder' : IDL.Func(
+        [IDL.Text, IDL.Int, IDL.Opt(IDL.Nat)],
+        [IDL.Nat],
+        [],
+      ),
     'addTask' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Vec(IDL.Text),
+          IDL.Opt(IDL.Nat),
+        ],
         [IDL.Nat],
         [],
       ),
@@ -404,6 +453,7 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCoinBalance' : IDL.Func([], [IDL.Nat], ['query']),
     'getCurrentAndNextLevelStage' : IDL.Func([], [LevelStatus], ['query']),
+    'getDailyStudyGoal' : IDL.Func([], [IDL.Opt(IDL.Nat)], ['query']),
     'getFocusTimerState' : IDL.Func(
         [],
         [IDL.Opt(PersistentFocusTimer)],
@@ -422,6 +472,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getStudyStreak' : IDL.Func([], [IDL.Nat], ['query']),
+    'getTasksByTag' : IDL.Func([IDL.Text], [IDL.Vec(Task)], ['query']),
     'getTimerSessions' : IDL.Func([], [IDL.Vec(TimerSessionV2)], ['query']),
     'getTimetableEntries' : IDL.Func([], [IDL.Vec(TimetableEntry)], ['query']),
     'getTimetableTickHistoryForEntry' : IDL.Func(
@@ -450,7 +501,7 @@ export const idlFactory = ({ IDL }) => {
     'isBackgroundOwned' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'markProfileSetupFinished' : IDL.Func([], [], []),
-    'pausePersistentStopwatch' : IDL.Func([], [], []),
+    'pausePersistentStopwatch' : IDL.Func([], [], ['oneway']),
     'purchaseCustomBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'purchaseNextLevelStage' : IDL.Func([], [LevelStatus], []),
     'recordTimerSession' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Nat], []),
@@ -466,6 +517,7 @@ export const idlFactory = ({ IDL }) => {
     'toggleTaskCompletion' : IDL.Func([IDL.Nat], [], []),
     'toggleTimetableEntryForToday' : IDL.Func([IDL.Nat], [IDL.Bool], []),
     'updateCallerProfile' : IDL.Func([IDL.Opt(ExternalBlob), IDL.Text], [], []),
+    'updateDailyStudyGoal' : IDL.Func([IDL.Nat], [IDL.Nat], []),
     'updateFocusTimerState' : IDL.Func([IDL.Nat, IDL.Bool], [], []),
     'updateNote' : IDL.Func(
         [
@@ -478,9 +530,21 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
-    'updateReminder' : IDL.Func([IDL.Nat, IDL.Text, IDL.Int], [], []),
+    'updateReminder' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Int, IDL.Opt(IDL.Nat)],
+        [],
+        [],
+      ),
     'updateTask' : IDL.Func(
-        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [
+          IDL.Nat,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Nat,
+          IDL.Vec(IDL.Text),
+          IDL.Opt(IDL.Nat),
+        ],
         [],
         [],
       ),

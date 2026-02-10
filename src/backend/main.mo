@@ -4,7 +4,7 @@ import Time "mo:core/Time";
 import Int "mo:core/Int";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
-import Migration "migration";
+import Nat "mo:core/Nat";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import List "mo:core/List";
@@ -12,6 +12,7 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+import Migration "migration";
 
 // Specify the data migration function in the with-clause
 (with migration = Migration.run)
@@ -33,6 +34,8 @@ actor {
     priority : Nat;
     completed : Bool;
     createdAt : Time.Time;
+    tags : [Text];
+    noteId : ?Nat;
   };
 
   public type TimetableEntry = {
@@ -61,6 +64,7 @@ actor {
     title : Text;
     reminderTime : Int;
     createdAt : Time.Time;
+    noteId : ?Nat;
   };
 
   public type TimerSessionV2 = {
@@ -79,6 +83,7 @@ actor {
     coins : Nat;
     nameChangeCount : Nat;
     finishedSetup : Bool;
+    dailyStudyGoal : Nat;
   };
 
   public type CoinReward = {
@@ -132,6 +137,23 @@ actor {
     rank : Text;
     displayText : Text;
     requiredCoins : Nat;
+  };
+
+  public type ShopItem = {
+    id : Text;
+    name : Text;
+    description : Text;
+    image : Storage.ExternalBlob;
+    price : Nat;
+    coinsReward : Nat;
+    isBackground : Bool;
+  };
+
+  public type PurchaseResult = {
+    success : Bool;
+    message : Text;
+    itemId : ?Text;
+    itemName : ?Text;
   };
 
   let levelRanks = [
@@ -656,6 +678,7 @@ actor {
           coins = initialCoins;
           nameChangeCount = 0;
           finishedSetup = true;
+          dailyStudyGoal = 60; // Default 60 minutes
         };
         userProfiles.add(caller, profile);
       };
@@ -676,7 +699,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func addTask(title : Text, description : Text, subject : Text, priority : Nat) : async Nat {
+  public shared ({ caller }) func addTask(title : Text, description : Text, subject : Text, priority : Nat, tags : [Text], noteId : ?Nat) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add tasks");
     };
@@ -691,6 +714,8 @@ actor {
       priority;
       completed = false;
       createdAt = Time.now();
+      tags;
+      noteId;
     };
     tasks.add(id, task);
     id;
@@ -732,6 +757,20 @@ actor {
 
     let tasks = getUserTaskMap(caller);
     tasks.values().toArray();
+  };
+
+  public query ({ caller }) func getTasksByTag(tag : Text) : async [Task] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view tasks");
+    };
+
+    let tasks = getUserTaskMap(caller);
+    let allTasks = tasks.values().toArray();
+    allTasks.filter(
+      func(task) {
+        task.tags.findIndex(func(t) { t == tag }) != null;
+      }
+    );
   };
 
   public shared ({ caller }) func addNote(title : Text, content : Text, subject : Text) : async Nat {
@@ -882,7 +921,7 @@ actor {
     );
   };
 
-  public shared ({ caller }) func addReminder(title : Text, reminderTime : Int) : async Nat {
+  public shared ({ caller }) func addReminder(title : Text, reminderTime : Int, noteId : ?Nat) : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can add reminders");
     };
@@ -894,6 +933,7 @@ actor {
       title;
       reminderTime;
       createdAt = Time.now();
+      noteId;
     };
     reminders.add(id, reminder);
     id;
@@ -1141,7 +1181,7 @@ actor {
     persistentStopwatches.add(caller, newState);
   };
 
-  public shared ({ caller }) func pausePersistentStopwatch() : async () {
+  public shared ({ caller }) func pausePersistentStopwatch() {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can pause stopwatch");
     };
@@ -1402,7 +1442,7 @@ actor {
     };
   };
 
-  // Study graph support
+  // Study graph support - left unchanged
 
   public type StudySession = {
     durationMinutes : Nat;
@@ -1436,7 +1476,7 @@ actor {
 
   // New Task Methods
 
-  public shared ({ caller }) func updateTask(taskId : Nat, title : Text, description : Text, subject : Text, priority : Nat) : async () {
+  public shared ({ caller }) func updateTask(taskId : Nat, title : Text, description : Text, subject : Text, priority : Nat, tags : [Text], noteId : ?Nat) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update tasks");
     };
@@ -1451,6 +1491,8 @@ actor {
           description;
           subject;
           priority;
+          tags;
+          noteId;
         };
         tasks.add(taskId, updatedTask);
       };
@@ -1474,7 +1516,7 @@ actor {
 
   // New Reminder Methods
 
-  public shared ({ caller }) func updateReminder(reminderId : Nat, title : Text, reminderTime : Int) : async () {
+  public shared ({ caller }) func updateReminder(reminderId : Nat, title : Text, reminderTime : Int, noteId : ?Nat) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update reminders");
     };
@@ -1483,10 +1525,29 @@ actor {
     switch (reminders.get(reminderId)) {
       case (null) { Runtime.trap("Reminder not found") };
       case (?reminder) {
-        let updatedReminder = { reminder with title; reminderTime };
+        let updatedReminder = { reminder with title; reminderTime; noteId };
         reminders.add(reminderId, updatedReminder);
       };
     };
   };
-};
 
+  // Study goal methods
+  public query ({ caller }) func getDailyStudyGoal() : async ?Nat {
+    switch (userProfiles.get(caller)) {
+      case (null) { null };
+      case (?profile) { ?profile.dailyStudyGoal };
+    };
+  };
+
+  public shared ({ caller }) func updateDailyStudyGoal(newGoal : Nat) : async Nat {
+    assertUserAuthorized(caller);
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("Profile not found") };
+      case (?profile) {
+        let updatedProfile = { profile with dailyStudyGoal = newGoal };
+        userProfiles.add(caller, updatedProfile);
+        newGoal;
+      };
+    };
+  };
+};

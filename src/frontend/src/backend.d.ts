@@ -21,6 +21,7 @@ export interface UserProfile {
     coins: bigint;
     finishedSetup: boolean;
     nameChangeCount: bigint;
+    dailyStudyGoal: bigint;
 }
 export interface Note {
     id: bigint;
@@ -56,7 +57,9 @@ export interface Task {
     id: bigint;
     title: string;
     subject: string;
+    noteId?: bigint;
     createdAt: Time;
+    tags: Array<string>;
     completed: boolean;
     description: string;
     priority: bigint;
@@ -77,6 +80,7 @@ export interface TimetableTick {
 export interface Reminder {
     id: bigint;
     title: string;
+    noteId?: bigint;
     createdAt: Time;
     reminderTime: bigint;
 }
@@ -104,8 +108,8 @@ export enum UserRole {
 export interface backendInterface {
     addNote(title: string, content: string, subject: string): Promise<bigint>;
     addNoteImage(noteId: bigint, imageUrl: ExternalBlob): Promise<void>;
-    addReminder(title: string, reminderTime: bigint): Promise<bigint>;
-    addTask(title: string, description: string, subject: string, priority: bigint): Promise<bigint>;
+    addReminder(title: string, reminderTime: bigint, noteId: bigint | null): Promise<bigint>;
+    addTask(title: string, description: string, subject: string, priority: bigint, tags: Array<string>, noteId: bigint | null): Promise<bigint>;
     addTimetableEntry(title: string, activityType: string, startTime: bigint, endTime: bigint, colorCode: string): Promise<bigint>;
     addVoiceNote(noteId: bigint, voiceNoteUrl: ExternalBlob): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
@@ -123,12 +127,14 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole>;
     getCoinBalance(): Promise<bigint>;
     getCurrentAndNextLevelStage(): Promise<LevelStatus>;
+    getDailyStudyGoal(): Promise<bigint | null>;
     getFocusTimerState(): Promise<PersistentFocusTimer | null>;
     getFullPersistentStopwatchState(): Promise<[boolean, bigint]>;
     getNewUserNeedsOnboarding(): Promise<boolean>;
     getPersistentStopwatchElapsedTime(): Promise<bigint>;
     getPersistentStopwatchState(): Promise<PersistentStopwatch | null>;
     getStudyStreak(): Promise<bigint>;
+    getTasksByTag(tag: string): Promise<Array<Task>>;
     getTimerSessions(): Promise<Array<TimerSessionV2>>;
     getTimetableEntries(): Promise<Array<TimetableEntry>>;
     getTimetableTickHistoryForEntry(entryId: bigint): Promise<Array<TimetableTick>>;
@@ -157,9 +163,10 @@ export interface backendInterface {
     toggleTaskCompletion(taskId: bigint): Promise<void>;
     toggleTimetableEntryForToday(entryId: bigint): Promise<boolean>;
     updateCallerProfile(profileImage: ExternalBlob | null, bio: string): Promise<void>;
+    updateDailyStudyGoal(newGoal: bigint): Promise<bigint>;
     updateFocusTimerState(remainingMinutes: bigint, isActive: boolean): Promise<void>;
     updateNote(noteId: bigint, title: string, content: string, imageUrls: Array<ExternalBlob>, voiceNoteUrls: Array<ExternalBlob>): Promise<void>;
-    updateReminder(reminderId: bigint, title: string, reminderTime: bigint): Promise<void>;
-    updateTask(taskId: bigint, title: string, description: string, subject: string, priority: bigint): Promise<void>;
+    updateReminder(reminderId: bigint, title: string, reminderTime: bigint, noteId: bigint | null): Promise<void>;
+    updateTask(taskId: bigint, title: string, description: string, subject: string, priority: bigint, tags: Array<string>, noteId: bigint | null): Promise<void>;
     updateTimetableEntry(id: bigint, newTitle: string, newActivityType: string, newColorCode: string): Promise<void>;
 }

@@ -37,6 +37,7 @@ export function useInitializeProfile() {
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['dailyGoal'] });
     },
   });
 }
@@ -178,6 +179,19 @@ export function useGetAllTasks() {
   });
 }
 
+export function useGetTasksByTag(tag: string | null) {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<Task[]>({
+    queryKey: ['tasks', 'byTag', tag],
+    queryFn: async () => {
+      if (!actor || !tag) return [];
+      return actor.getTasksByTag(tag);
+    },
+    enabled: !!actor && !isFetching && !!tag,
+  });
+}
+
 export function useAddTask() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
@@ -188,14 +202,18 @@ export function useAddTask() {
       description,
       subject,
       priority,
+      tags,
+      noteId,
     }: {
       title: string;
       description: string;
       subject: string;
       priority: bigint;
+      tags: string[];
+      noteId: bigint | null;
     }) => {
       if (!actor) throw new Error('Actor not initialized');
-      return actor.addTask(title, description, subject, priority);
+      return actor.addTask(title, description, subject, priority, tags, noteId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -214,15 +232,19 @@ export function useUpdateTask() {
       description,
       subject,
       priority,
+      tags,
+      noteId,
     }: {
       taskId: bigint;
       title: string;
       description: string;
       subject: string;
       priority: bigint;
+      tags: string[];
+      noteId: bigint | null;
     }) => {
       if (!actor) throw new Error('Actor not initialized');
-      return actor.updateTask(taskId, title, description, subject, priority);
+      return actor.updateTask(taskId, title, description, subject, priority, tags, noteId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
@@ -437,6 +459,8 @@ export function useUpdateNote() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
     },
   });
 }
@@ -452,6 +476,8 @@ export function useDeleteNote() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
     },
   });
 }
@@ -477,9 +503,9 @@ export function useAddReminder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ title, reminderTime }: { title: string; reminderTime: bigint }) => {
+    mutationFn: async ({ title, reminderTime, noteId }: { title: string; reminderTime: bigint; noteId: bigint | null }) => {
       if (!actor) throw new Error('Actor not initialized');
-      return actor.addReminder(title, reminderTime);
+      return actor.addReminder(title, reminderTime, noteId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
@@ -492,9 +518,9 @@ export function useUpdateReminder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ reminderId, title, reminderTime }: { reminderId: bigint; title: string; reminderTime: bigint }) => {
+    mutationFn: async ({ reminderId, title, reminderTime, noteId }: { reminderId: bigint; title: string; reminderTime: bigint; noteId: bigint | null }) => {
       if (!actor) throw new Error('Actor not initialized');
-      return actor.updateReminder(reminderId, title, reminderTime);
+      return actor.updateReminder(reminderId, title, reminderTime, noteId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reminders'] });
@@ -547,6 +573,8 @@ export function useRecordTimerSession() {
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
       queryClient.invalidateQueries({ queryKey: ['weeklyStudySessions'] });
+      queryClient.invalidateQueries({ queryKey: ['dailyGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['heatmapData'] });
     },
   });
 }
@@ -693,11 +721,14 @@ export function useCompleteStopwatchSession() {
       return actor.completeStopwatchSession(elapsedMinutes);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['stopwatchState'] });
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
       queryClient.invalidateQueries({ queryKey: ['weeklyStudySessions'] });
+      queryClient.invalidateQueries({ queryKey: ['dailyGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['heatmapData'] });
     },
   });
 }
@@ -713,5 +744,35 @@ export function useGetWeeklyStudySessions() {
       return actor.getWeeklyStudySessions();
     },
     enabled: !!actor && !isFetching,
+  });
+}
+
+// Daily Study Goal
+export function useGetDailyStudyGoal() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<bigint | null>({
+    queryKey: ['dailyGoal'],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getDailyStudyGoal();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function useUpdateDailyStudyGoal() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (newGoal: bigint) => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.updateDailyStudyGoal(newGoal);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dailyGoal'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
   });
 }

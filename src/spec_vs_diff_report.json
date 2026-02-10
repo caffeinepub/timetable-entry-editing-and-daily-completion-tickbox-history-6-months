@@ -1,48 +1,136 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T16:35:44.354Z",
-  "summary": "The diff implements the weekly study-time graph UI, reminder edit/delete UI, task edit/delete UI, and in-app reminder notification scheduling with de-duplication. However, the diff also includes several changes not requested in the BuildRequest (notably app branding/renaming and new migration scaffolding). Backend support for new reminder/task edit/delete and weekly-session querying cannot be fully verified from the truncated backend diff.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-10T06:23:29.944Z",
+  "summary": "Diff adds new frontend views for monthly summary, 90-day heatmap, and daily goal progress; adds task tags and single-note linking UI for tasks/reminders; introduces a migration and extends backend types for tags, noteId, and dailyStudyGoal. However, several requirements call for new backend methods and persistent per-user data (monthly summary, heatmap aggregates, daily goal get/update, multi-note associations, and expanded shop ownership/purchases) that are not evidenced in the diff and in some cases are implemented only client-side or only with local state.",
+  "missing_requirements": [
     {
-      "description": "App branding/renaming to “Scholar Gold” and related UI/logo updates.",
-      "reason": "The BuildRequest does not request any rebranding or renaming work; it focuses on avatar reliability, weekly study-time graph, reminders/tasks edit/delete, and reminder notifications.",
+      "id": "REQ-34",
+      "requirement": "Backend support for a Monthly Study Summary (month total minutes + best 7-day week within month) via a new backend method that does not trap on empty months.",
+      "reason": "The frontend MonthlyStudySummaryView computes monthly totals and best week by filtering sessions from useGetWeeklyStudySessions (client-side). The diff summary shows no new backend method for monthly summaries.",
       "evidence": [
-        "frontend/src/components/Header.tsx",
-        "frontend-file-summaries.txt (mentions \"now branded as \\\"Scholar Gold\\\"\" and LoginScreen branding)"
+        "frontend/src/components/MonthlyStudySummaryView.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo (truncated)"
       ]
     },
     {
-      "description": "Added backend migration module and wired migration into the actor.",
-      "reason": "No migration work is requested; constraints specify keeping backend logic in backend/main.mo, but this adds a separate backend/migration.mo module.",
+      "id": "REQ-35",
+      "requirement": "Monthly Study Summary UI must fetch data via React Query from the backend monthly-summary method and remain consistent via query invalidation after new sessions are recorded.",
+      "reason": "UI uses useGetWeeklyStudySessions and derives month stats locally, rather than fetching a dedicated backend monthly summary for a selected month/year; no query keys/invalidation for a monthly summary are evidenced.",
       "evidence": [
+        "frontend/src/components/MonthlyStudySummaryView.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "requirement": "Backend method to fetch per-day aggregated study minutes for at least the last 90 days (with unambiguous day keys and support for continuous range rendering).",
+      "reason": "Heatmap UI computes per-day minutes by repeatedly filtering weekly sessions on the client; no backend per-day aggregation method is shown in the diff summary.",
+      "evidence": [
+        "frontend/src/components/StudyHeatmapView.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo (truncated)"
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "requirement": "Heatmap UI should load heatmap data via React Query and include an English legend explaining intensity meaning.",
+      "reason": "StudyHeatmapView uses useGetWeeklyStudySessions (not a heatmap-specific React Query fetch) and the provided snippet shows no legend component/text explaining intensity levels.",
+      "evidence": [
+        "frontend/src/components/StudyHeatmapView.tsx"
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "requirement": "Backend methods to get/update a per-user daily study goal with validation and sensible default (e.g., 0 meaning no goal set), without trapping for existing users.",
+      "reason": "Types and migration add dailyStudyGoal, but the diff summary does not show backend get/update methods or validation logic. Migration sets dailyStudyGoal=60 (not 0/no-goal) for existing users.",
+      "evidence": [
+        "backend/main.mo (truncated)",
         "backend/migration.mo",
-        "backend/main.mo (with migration = Migration.run)"
+        "frontend/src/hooks/useQueries.ts (references dailyGoal invalidation but no shown hook definitions)"
       ]
     },
     {
-      "description": "Added/changed level rank strings including emojis (e.g., \"Noob 🫠\", \"Pro Student 🔥\").",
-      "reason": "Not requested in the BuildRequest; also potentially conflicts with the constraint that user-facing text must be in English (emojis are non-text symbols).",
+      "id": "REQ-39",
+      "requirement": "Daily goal progress should use today’s studied minutes across all modes and refresh after recording sessions via query invalidation patterns; if no goal set, prompt to set goal.",
+      "reason": "DailyGoalProgressCard computes todayMinutes from useGetWeeklyStudySessions only (may not cover all modes and relies on weekly window) and the diff summary does not show session-recording invalidation tied to goal progress/today totals.",
       "evidence": [
-        "backend/main.mo (levelRanks array)"
+        "frontend/src/components/DailyGoalProgressCard.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "requirement": "Backend methods to create/update task tags and list tasks with tags; allow updating tags without affecting unrelated fields; preserve existing tasks via conditional migration.",
+      "reason": "Backend Task type includes tags and migration initializes tags=[], but the diff summary does not show backend methods specifically supporting tag updates independent of other fields, nor any explicit API changes beyond type additions.",
+      "evidence": [
+        "backend/main.mo (truncated)",
+        "backend/migration.mo"
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "requirement": "Tasks can be associated with zero or more notes, including linking/unlinking existing notes and creating a new note within task edit flow; handle deleted-note fallback.",
+      "reason": "Backend and migration use a single noteId (?Nat) on Task, not zero-or-more notes. Frontend NoteLinker and TodoSection appear designed for one linked note (linkedNoteId singular). No evidence of deleted-note fallback behavior in task rendering.",
+      "evidence": [
+        "backend/main.mo (truncated: Task has noteId : ?Nat)",
+        "backend/migration.mo (NewTask noteId : ?Nat)",
+        "frontend/src/components/NoteLinker.tsx",
+        "frontend/src/components/TodoSection.tsx"
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "requirement": "Reminders can be associated with zero or more notes, including link/unlink existing notes and create-and-attach within reminder edit flow; reminder notification behavior unchanged.",
+      "reason": "Backend and migration use a single noteId (?Nat) on Reminder, not zero-or-more notes. UI state also uses a single linkedNoteId/editLinkedNoteId. No evidence regarding notification behavior guarantees.",
+      "evidence": [
+        "backend/main.mo (truncated: Reminder has noteId : ?Nat)",
+        "backend/migration.mo (NewReminder noteId : ?Nat)",
+        "frontend/src/components/RemindersSection.tsx",
+        "frontend/src/components/NoteLinker.tsx"
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "requirement": "Expanded reward shop with at least one new item category beyond backgrounds, with backend-persisted ownership, coin deduction once, repurchase prevention, React Query invalidation, and insufficient-coin blocking with English error.",
+      "reason": "RewardShopSection uses local React state (ownedItems Set) and explicitly comments that purchase is simulated and would call backend in a real app. No backend purchase/ownership persistence for new item categories is evidenced; no React Query invalidation after purchase is shown.",
+      "evidence": [
+        "frontend/src/components/RewardShopSection.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo (truncated)"
       ]
     }
   ],
-  "confidence": 0.63,
+  "hallucinated_features": [
+    {
+      "description": "Daily study goal default set to 60 minutes for all existing users during migration.",
+      "reason": "BuildRequest suggests a sensible default such as 0 meaning “no goal set”; setting 60 by default changes existing users’ state/UX without being requested.",
+      "evidence": [
+        "backend/migration.mo (dailyStudyGoal = 60)"
+      ]
+    },
+    {
+      "description": "Reward shop implements a client-side simulated purchase/ownership system (ownedItems in local state) without backend integration.",
+      "reason": "The requirement calls for backend-persisted ownership and coin deduction; the added simulated purchase behavior is not requested and may conflict with the intended persistent design.",
+      "evidence": [
+        "frontend/src/components/RewardShopSection.tsx (\"Simulate purchase (in real app, this would call backend)\")"
+      ]
+    }
+  ],
+  "confidence": 0.74,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
-    "frontend-file-summaries.txt",
-    "frontend/src/components/Header.tsx",
+    "frontend/src/components/DailyGoalProgressCard.tsx",
+    "frontend/src/components/MonthlyStudySummaryView.tsx",
+    "frontend/src/components/NoteLinker.tsx",
     "frontend/src/components/ProfileSection.tsx",
-    "frontend/src/components/ReminderNotifications.tsx",
     "frontend/src/components/RemindersSection.tsx",
+    "frontend/src/components/RewardShopSection.tsx",
+    "frontend/src/components/StudyHeatmapView.tsx",
     "frontend/src/components/TodoSection.tsx",
-    "frontend/src/components/WeeklyStudyTimeGraph.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/NotificationManager.ts",
-    "frontend/src/utils/weeklyStudyGraph.ts",
     "project_state.json"
   ]
 }

@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-profile-photo-avatar-feature-end-to-end-so-that-uploading-a-profile-photo-from-the-profile-page-reliably-persists-and-renders-as-the-user-s-avatar-including-after-reload-and-after-logging-out-logging-back-in",
-      "featureTitle": "Fix the profile photo (avatar) feature end-to-end so that uploading a profile photo from the Profile page reliably persists and renders as the user’s avatar, including after reload and after logging out + logging back in.",
+      "featureId": "feature-add-a-monthly-study-summary-ui-view-in-the-authenticated-experience-that-displays-the-selected-month-s-total-minutes-studied-and-the-best-week-for-that-month-with-a-simple-month-selector-e-g-previous-next-month",
+      "featureTitle": "Add a Monthly Study Summary UI view in the authenticated experience that displays the selected month’s total minutes studied and the best week for that month, with a simple month selector (e.g., previous/next month).",
       "files": [
-        "frontend/src/components/Header.tsx",
+        "frontend/src/components/MonthlyStudySummaryView.tsx",
         "frontend/src/components/ProfileSection.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
@@ -21,18 +21,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-28"
+        "REQ-35"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-weekly-study-time-graph-in-the-authenticated-ui-that-shows-minutes-studied-for-the-last-7-days-including-1-a-combined-total-across-pomodoro-custom-timer-stopwatch-and-2-a-per-mode-breakdown-so-pomodoro-custom-and-stopwatch-minutes-are-distinguishable",
-      "featureTitle": "Add a weekly study-time graph in the authenticated UI that shows minutes studied for the last 7 days, including (1) a combined total across Pomodoro + Custom timer + Stopwatch and (2) a per-mode breakdown so Pomodoro, Custom, and Stopwatch minutes are distinguishable.",
+      "featureId": "feature-add-a-study-day-heatmap-ui-view-github-style-that-visualizes-daily-study-minutes-over-the-recent-window-at-minimum-last-90-days-using-intensity-levels-plus-a-legend-that-explains-the-intensity-meaning-in-english",
+      "featureTitle": "Add a Study-Day Heatmap UI view (GitHub-style) that visualizes daily study minutes over the recent window (at minimum: last 90 days) using intensity levels, plus a legend that explains the intensity meaning in English.",
       "files": [
         "frontend/src/components/ProfileSection.tsx",
-        "frontend/src/components/WeeklyStudyTimeGraph.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/utils/weeklyStudyGraph.ts"
+        "frontend/src/components/StudyHeatmapView.tsx",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -46,13 +45,84 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-29"
+        "REQ-37"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-support-to-edit-and-delete-reminders-from-the-reminders-ui-persisting-changes-in-the-backend-and-keeping-the-list-of-upcoming-reminders-in-sync-via-existing-react-query-invalidation",
-      "featureTitle": "Add support to edit and delete reminders from the Reminders UI, persisting changes in the backend and keeping the list of upcoming reminders in sync via existing React Query invalidation.",
+      "featureId": "feature-add-a-daily-goal-progress-bar-ui-that-shows-today-s-studied-minutes-versus-the-user-s-configured-daily-goal-and-provide-a-simple-ui-control-to-set-update-the-daily-goal-in-minutes",
+      "featureTitle": "Add a Daily Goal progress bar UI that shows today’s studied minutes versus the user’s configured daily goal, and provide a simple UI control to set/update the daily goal (in minutes).",
+      "files": [
+        "frontend/src/components/DailyGoalProgressCard.tsx",
+        "frontend/src/components/ProfileSection.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-39"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-task-tags-ui-allow-users-to-add-remove-tags-on-tasks-and-provide-a-simple-filter-to-view-tasks-by-a-selected-tag-including-an-all-view",
+      "featureTitle": "Add Task Tags UI: allow users to add/remove tags on tasks, and provide a simple filter to view tasks by a selected tag (including an ‘All’ view).",
+      "files": [
+        "frontend/src/components/TodoSection.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-41"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-notes-inside-each-task-allow-attaching-an-existing-note-to-a-task-by-reference-and-or-creating-a-new-note-from-within-the-task-edit-flow-with-backend-persistence-of-the-task-note-association",
+      "featureTitle": "Add ‘Notes inside each task’: allow attaching an existing note to a task (by reference) and/or creating a new note from within the task edit flow, with backend persistence of the task↔note association.",
+      "files": [
+        "frontend/src/components/NoteLinker.tsx",
+        "frontend/src/components/TodoSection.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-42"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-notes-inside-each-reminder-allow-attaching-an-existing-note-to-a-reminder-by-reference-and-or-creating-a-new-note-from-within-the-reminder-edit-flow-with-backend-persistence-of-the-reminder-note-association",
+      "featureTitle": "Add ‘Notes inside each reminder’: allow attaching an existing note to a reminder (by reference) and/or creating a new note from within the reminder edit flow, with backend persistence of the reminder↔note association.",
       "files": [
         "frontend/src/components/RemindersSection.tsx",
         "frontend/src/hooks/useQueries.ts"
@@ -69,39 +139,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-30"
+        "REQ-43"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-reminders-trigger-an-in-app-browser-notification-at-the-reminder-time-as-accurately-as-possible-while-the-app-is-open-and-avoid-duplicate-notifications-for-the-same-reminder",
-      "featureTitle": "Ensure reminders trigger an in-app browser notification at the reminder time as accurately as possible while the app is open, and avoid duplicate notifications for the same reminder.",
+      "featureId": "feature-expand-the-coin-reward-shop-by-adding-additional-purchasable-items-beyond-backgrounds-with-clear-item-listing-coin-costs-purchase-confirmation-and-per-user-permanent-ownership-so-previously-purchased-items-are-not-charged-again-when-re-equipped-used",
+      "featureTitle": "Expand the coin reward shop by adding additional purchasable items beyond backgrounds, with clear item listing, coin costs, purchase confirmation, and per-user permanent ownership so previously purchased items are not charged again when re-equipped/used.",
       "files": [
-        "frontend/src/components/ReminderNotifications.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/lib/NotificationManager.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "camera@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-31"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-support-to-edit-and-delete-tasks-in-the-tasks-todo-ui-persisting-changes-in-the-backend-and-keeping-the-tasks-list-in-sync-via-existing-react-query-invalidation",
-      "featureTitle": "Add support to edit and delete tasks in the Tasks (Todo) UI, persisting changes in the backend and keeping the tasks list in sync via existing React Query invalidation.",
-      "files": [
-        "frontend/src/components/TodoSection.tsx",
+        "frontend/src/components/RewardShopSection.tsx",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -116,30 +162,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-32"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-allow-tasks-to-be-unselected-i-e-completion-can-be-toggled-both-directions-so-a-user-can-mark-a-task-completed-and-later-mark-it-as-not-completed-again",
-      "featureTitle": "Allow tasks to be unselected (i.e., completion can be toggled both directions) so a user can mark a task completed and later mark it as not completed again.",
-      "files": [
-        "frontend/src/components/TodoSection.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "blob-storage@4.0.0",
-        "camera@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-33"
+        "REQ-44"
       ],
       "confidence": "high"
     }

@@ -1,155 +1,225 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Improve avatar persistence, weekly study graph, reminder/task editing, and accurate in-app notifications",
+  "title": "Study insights (monthly summary, heatmap, daily goal), task tags & embedded notes, and expanded reward shop UI",
   "requirements": [
     {
-      "id": "REQ-28",
-      "summary": "Make profile photo upload persist reliably and render consistently across Profile + Header, including after reload and re-login, with clear error handling.",
+      "id": "REQ-35",
+      "summary": "Add a Monthly Study Summary view (month selector + totals + best week) in the authenticated UI using React Query.",
       "acceptanceCriteria": [
-        "From the Profile page, selecting an image and saving updates the user profile and shows the new avatar immediately.",
-        "After a full page reload, the avatar still displays the uploaded image (not the fallback).",
-        "After logging out and logging back in, the avatar still displays the uploaded image.",
-        "If upload/persist fails for any reason, the UI shows a clear error message and the previous avatar remains unchanged."
+        "The UI shows the selected month label and two metrics: total study minutes and best-week minutes.",
+        "The UI can switch between months and updates the displayed numbers accordingly.",
+        "Loading and empty states are handled with clear English text.",
+        "Data is fetched via React Query and remains consistent after new study sessions are recorded (relevant queries invalidate/refetch)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ProfileSection.tsx",
+          "path": "frontend/src/backend.d.ts",
           "operation": "modify",
-          "description": "Harden avatar upload flow: use the blob-storage ExternalBlob API (e.g., ExternalBlob.fromBytes and optional upload progress) to upload, keep showing the previous avatar until the save succeeds, then switch immediately to the new avatar; add explicit, user-facing error messages when save fails. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Ensure the Header avatar updates reliably after profile changes by reacting to updated profile data and forcing AvatarImage refresh when the profile image changes (e.g., stable cache-buster/version derived from successful profile updates), while retaining fallback behavior when no image exists."
+          "description": "Extend the frontend backend type declarations to include the new monthly study summary return type and backend capability signature used by the Monthly Study Summary UI."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Strengthen profile query/mutation behavior for avatar reliability (e.g., ensure profile updates trigger refetch/invalidation consistently; optionally add a dedicated helper hook that exposes a stable avatar URL/version for Profile + Header)."
-        }
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "summary": "Add a weekly (last 7 days) study-time graph showing combined minutes and per-mode breakdown (Pomodoro, Custom, Stopwatch) in the authenticated UI.",
-      "acceptanceCriteria": [
-        "The UI displays a 7-day view (including day labels) with minutes studied per day.",
-        "The UI provides a combined total view and a breakdown by mode (Pomodoro vs Custom vs Stopwatch).",
-        "The data used in the graph is persisted and is consistent after reload/log out + log in.",
-        "Days with zero study show as 0 minutes (no missing days)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a React Query hook to fetch weekly study sessions from the backend capability and keep it cached/invalidated appropriately for authenticated users."
+          "description": "Add a React Query hook (and queryKey conventions) to fetch the monthly study summary for a given year/month, and ensure relevant session-recording mutations invalidate/refetch the summary query."
         },
         {
-          "path": "frontend/src/utils/weeklyStudyGraph.ts",
+          "path": "frontend/src/components/MonthlyStudySummaryView.tsx",
           "operation": "create",
-          "description": "Implement frontend-only aggregation helpers to map raw weekly study sessions into a fixed 7-day series with zero-filled days, plus totals and per-mode (Pomodoro/Custom/Stopwatch) breakdown; include tolerant sessionType normalization."
-        },
-        {
-          "path": "frontend/src/components/WeeklyStudyTimeGraph.tsx",
-          "operation": "create",
-          "description": "Create a reusable graph component (no new routes) that renders day labels, combined totals, and a per-mode breakdown visualization suitable for the existing shadcn-ui/Tailwind layout. Verify the component's usage instructions before implementing."
+          "description": "Create a Monthly Study Summary UI component with previous/next month controls, English loading/empty states, and metric display. Use shadcn-ui building blocks (e.g., Card, Button, Skeleton/placeholder patterns where available). Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Wire the WeeklyStudyTimeGraph into an existing authenticated view (Profile page) so users can see last-7-days totals and per-mode breakdown without adding new top-level navigation."
+          "description": "Wire the MonthlyStudySummaryView into the authenticated Profile experience (e.g., as a new section near existing study metrics) so it is reachable without adding a new top-level route/tab."
         }
       ]
     },
     {
-      "id": "REQ-30",
-      "summary": "Enable edit and delete actions for upcoming reminders in the Reminders UI and keep the list in sync via React Query invalidation.",
+      "id": "REQ-37",
+      "summary": "Add a GitHub-style Study-Day Heatmap view for the recent window (≥90 days) with legend and tooltip, loaded via React Query.",
       "acceptanceCriteria": [
-        "Each reminder in the Upcoming Reminders list has actions to Edit and Delete.",
-        "Editing a reminder allows updating at least the title and reminder date/time, and the updated reminder appears correctly in the list after saving.",
-        "Deleting a reminder removes it from the list and it does not reappear after reload.",
-        "Backend enforces that a user can only edit/delete their own reminders."
+        "A heatmap grid renders for the selected time window (at minimum last 90 days).",
+        "Each day cell’s intensity reflects the minutes studied that day; days with 0 minutes render as the lowest intensity.",
+        "Hover or click on a day shows an English tooltip/popover with the date and minutes studied.",
+        "The heatmap data is loaded via React Query and displays an appropriate loading state."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Extend the frontend backend type declarations to include the new heatmap aggregation data type and backend capability signature used by the Study-Day Heatmap UI."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query hook to fetch per-day study minutes for a recent range (defaulting to last 90 days) and standardize query keys for invalidation after sessions are recorded."
+        },
+        {
+          "path": "frontend/src/utils/studyHeatmap.ts",
+          "operation": "create",
+          "description": "Add date-range and normalization helpers to build a continuous day sequence for the heatmap (ensuring days with no study minutes render at lowest intensity) and to format tooltip labels in English."
+        },
+        {
+          "path": "frontend/src/components/StudyHeatmapView.tsx",
+          "operation": "create",
+          "description": "Create a GitHub-style heatmap grid component with intensity buckets, an English legend, and an English tooltip/popover for day details. Use shadcn-ui primitives for tooltip/popover/card where applicable. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Wire the StudyHeatmapView into the authenticated Profile experience so the heatmap is visible and not an orphan component."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Add a Daily Study Goal progress UI: show today’s minutes vs goal with progress bar and allow updating the goal, with React Query invalidation.",
+      "acceptanceCriteria": [
+        "If the daily goal is set (> 0), the UI shows a progress bar with ‘X / Goal minutes’ in English and a percent completion.",
+        "If the daily goal is not set (0 or missing), the UI prompts the user in English to set a goal and does not show misleading progress.",
+        "Updating the goal triggers a backend update and the displayed goal/progress refreshes via React Query invalidation.",
+        "Today’s studied minutes include Pomodoro + Custom timer + Stopwatch and update after recording a session (via existing query invalidation patterns)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add a React Query mutation hook for updating reminders (using the existing backend capability), and ensure existing reminder mutations consistently invalidate the reminders query key."
+          "description": "Add/standardize React Query hooks for reading and updating the daily study goal (get/update), and ensure mutations invalidate the goal and any dependent study-minute queries used for today’s progress."
+        },
+        {
+          "path": "frontend/src/utils/todayStudyMinutes.ts",
+          "operation": "create",
+          "description": "Implement a small utility to compute today’s studied minutes from the app’s existing study session sources (Pomodoro + Custom timer + Stopwatch) as returned to the frontend, producing a single number suitable for progress calculation."
+        },
+        {
+          "path": "frontend/src/components/DailyGoalProgressCard.tsx",
+          "operation": "create",
+          "description": "Create a Daily Goal UI card with an English prompt when no goal is set, an input to set/update goal minutes, and a progress bar with English labels and percent. Use shadcn-ui components (Card, Input, Button, Progress if available). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Wire the DailyGoalProgressCard into the authenticated Profile experience near other study metrics so it’s accessible and updates when study sessions or the goal change."
+        }
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "summary": "Add Task Tags UI: add/remove tags in task create/edit and filter the To-Do list by tag (including an All view) with React Query invalidation.",
+      "acceptanceCriteria": [
+        "Task create/edit UI supports adding/removing tags with clear English labels.",
+        "The To-Do list can be filtered by a selected tag and returns to an ‘All’ view reliably.",
+        "Tag changes persist to the backend and the tasks list refreshes via React Query invalidation.",
+        "The UI behaves sensibly for tasks with no tags (still visible in ‘All’; excluded from specific-tag filters)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update task mutations to send tags when creating/updating tasks and add a query helper to fetch tasks by tag when a tag filter is active (or keep a single tasks query and filter client-side while still persisting tags). Ensure React Query invalidation refreshes task lists after tag edits."
+        },
+        {
+          "path": "frontend/src/utils/taskTags.ts",
+          "operation": "create",
+          "description": "Add helpers for parsing/normalizing user-entered tag strings (trim, dedupe, case normalization strategy) and for computing available tag options from the task list."
+        },
+        {
+          "path": "frontend/src/components/TodoSection.tsx",
+          "operation": "modify",
+          "description": "Add tag entry controls to the Add Task form and Edit Task dialog, render tags as badges, and add an English-labeled tag filter (including an ‘All’ view). Use shadcn-ui components already in use (Input, Badge, Select/Tabs, Dialog). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "summary": "Add ‘Notes inside each task’ UI: link/unlink existing notes and create a new note from the task edit flow, showing safe fallbacks when notes are missing.",
+      "acceptanceCriteria": [
+        "A task can be associated with zero or more notes, and the association persists across reload and re-login.",
+        "From the task UI, a user can link an existing note to a task and unlink it later.",
+        "From the task UI, a user can create a new note and attach it to the task in the same flow.",
+        "Deleting a note that is linked to tasks does not break task rendering; tasks either drop the missing link or show a clear English ‘note not found’ fallback."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend type declarations as needed to reflect the task↔note association shape required by the UI (e.g., supporting multiple note references) and any related backend capability signatures used by the new task note-linking UI."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add/adjust React Query hooks and mutations to support linking/unlinking notes to tasks and creating a note from within the task flow, ensuring task and note queries invalidate appropriately."
+        },
+        {
+          "path": "frontend/src/components/NoteLinker.tsx",
+          "operation": "create",
+          "description": "Create a reusable NoteLinker component that can (1) list/select existing notes, (2) create a new note inline, and (3) link/unlink notes for a parent entity, with clear English labels and ‘note not found’ fallback handling. Use shadcn-ui primitives (Dialog/Popover/Select/Button). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/TodoSection.tsx",
+          "operation": "modify",
+          "description": "Integrate NoteLinker into the task create/edit flows to attach/unattach notes and to create-and-attach a note in one flow; display linked notes within the task UI with English fallbacks if referenced notes are missing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "summary": "Add ‘Notes inside each reminder’ UI: link/unlink existing notes and create a new note from the reminder edit flow without changing notification behavior.",
+      "acceptanceCriteria": [
+        "A reminder can be associated with zero or more notes, and the association persists across reload and re-login.",
+        "From the reminders UI, a user can link/unlink existing notes to a reminder.",
+        "From the reminders UI, a user can create a new note and attach it to the reminder in the same flow.",
+        "Reminder notification behavior remains unchanged and does not duplicate due to note changes."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend type declarations as needed to reflect the reminder↔note association shape required by the UI (e.g., supporting multiple note references) and any related backend capability signatures used by the reminder note-linking UI."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add/adjust React Query hooks/mutations to support linking/unlinking notes to reminders and creating a note from within the reminder flow; ensure reminder and note queries invalidate appropriately without altering reminder-notification scheduling logic."
         },
         {
           "path": "frontend/src/components/RemindersSection.tsx",
           "operation": "modify",
-          "description": "Add Edit and Delete actions per reminder, including an edit dialog (title + date/time) and a delete confirmation; on save/delete, use React Query mutations and rely on existing invalidation to keep the list in sync."
+          "description": "Integrate the shared NoteLinker component into reminder add/edit dialogs to attach/unattach notes and to create-and-attach a note in one flow, while keeping the existing reminder notification wiring unchanged. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-31",
-      "summary": "Trigger accurate in-app browser notifications for reminders while the app is open, avoid duplicates, and show clear messaging when notification permission is not granted.",
+      "id": "REQ-44",
+      "summary": "Expand the reward shop UI beyond backgrounds: show item listing with costs and owned state, purchase confirmation, and prevent re-charging owned items, with React Query refresh after purchase.",
       "acceptanceCriteria": [
-        "When the current time reaches a reminder’s scheduled time (while the app is open), the app shows a browser notification for that reminder.",
-        "Notifications do not fire more than once per reminder.",
-        "If notification permissions are not granted, the app presents a clear, user-facing message prompting the user to enable notifications, and reminders still remain visible in the list."
+        "The app shows an expanded shop list with at least one new item category beyond backgrounds (cosmetic/non-functional items are acceptable).",
+        "Each item has a clear English name, a coin cost, and an owned/unowned state.",
+        "Purchasing an item deducts coins once, persists ownership for the user, and prevents repurchase charges for already-owned items.",
+        "Coin balance and any relevant ownership queries are refreshed via React Query invalidation after purchase.",
+        "If the user does not have enough coins, the purchase is blocked and an English error message is shown."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/backend.d.ts",
           "operation": "modify",
-          "description": "Fix upcoming-reminders time handling to use consistent units (nanoseconds vs milliseconds) when requesting reminders so scheduling accuracy matches saved reminder timestamps."
+          "description": "Extend the frontend backend type declarations to include reward shop item types/categories, ownership reads, and purchase capabilities for new shop items beyond backgrounds."
         },
-        {
-          "path": "frontend/src/lib/NotificationManager.ts",
-          "operation": "modify",
-          "description": "Extend NotificationManager to support browser Notification API delivery (when supported and granted), with a clear fallback to in-app toast messaging; centralize permission checks and a single, user-facing prompt message when permission is missing."
-        },
-        {
-          "path": "frontend/src/components/ReminderNotifications.tsx",
-          "operation": "modify",
-          "description": "Replace coarse polling window logic with per-reminder scheduling while the app is open (setTimeout based on reminderTime), persist a de-duplication registry (e.g., sessionStorage) so a reminder only notifies once even across refetches, and show a clear message when notification permission is denied/default."
-        }
-      ]
-    },
-    {
-      "id": "REQ-32",
-      "summary": "Enable edit and delete actions for tasks in the Tasks (Todo) UI and keep the list in sync via React Query invalidation.",
-      "acceptanceCriteria": [
-        "Each task has actions to Edit and Delete.",
-        "Editing supports updating at minimum: title; and also updates description, subject, and priority if present.",
-        "Deleting a task removes it from the list and it does not reappear after reload.",
-        "Backend enforces that a user can only edit/delete their own tasks."
-      ],
-      "file_operations": [
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add React Query mutation hooks for updating tasks and ensure delete/update mutations invalidate the tasks query key consistently."
+          "description": "Add React Query hooks for listing shop items, checking/reading ownership states, and purchasing items with proper query invalidation for coin balance and ownership after purchase attempts."
         },
         {
-          "path": "frontend/src/components/TodoSection.tsx",
-          "operation": "modify",
-          "description": "Add per-task Edit and Delete actions (edit dialog for title/description/subject/priority and delete confirmation), wire to the new mutations, and ensure the UI reflects saved changes immediately via invalidation-driven refresh."
-        }
-      ]
-    },
-    {
-      "id": "REQ-33",
-      "summary": "Allow toggling task completion both directions (complete and uncomplete) and persist the state after reload.",
-      "acceptanceCriteria": [
-        "Clicking the task completion checkbox toggles between completed and not completed.",
-        "A completed task can be returned to the Pending list after being unselected.",
-        "The completion state persists after reload."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a React Query mutation hook for toggling task completion using the existing backend capability (instead of one-way completion), and invalidate tasks on success."
+          "path": "frontend/src/components/RewardShopSection.tsx",
+          "operation": "create",
+          "description": "Create an expanded Reward Shop UI section that includes at least one new cosmetic/non-functional item category beyond backgrounds, with English item names/costs, owned/unowned indicators, a purchase confirmation dialog, and an English insufficient-coins error state. Use shadcn-ui components (Card, Tabs, Dialog, Badge, Button). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/TodoSection.tsx",
+          "path": "frontend/src/components/BackgroundSettings.tsx",
           "operation": "modify",
-          "description": "Update task checkbox behavior in both Pending and Completed tabs to call the toggle mutation so completion can be changed in either direction, and ensure the list moves tasks between tabs based on persisted completion state."
+          "description": "Wire RewardShopSection into the existing Settings experience (alongside the current background shop) so the expanded shop is discoverable without creating a new top-level route/tab."
         }
       ]
     }

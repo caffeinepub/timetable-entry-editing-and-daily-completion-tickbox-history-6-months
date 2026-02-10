@@ -45,6 +45,7 @@ export interface PersistentStopwatch {
 export interface Reminder {
   'id' : bigint,
   'title' : string,
+  'noteId' : [] | [bigint],
   'createdAt' : Time,
   'reminderTime' : bigint,
 }
@@ -58,7 +59,9 @@ export interface Task {
   'id' : bigint,
   'title' : string,
   'subject' : string,
+  'noteId' : [] | [bigint],
   'createdAt' : Time,
+  'tags' : Array<string>,
   'completed' : boolean,
   'description' : string,
   'priority' : bigint,
@@ -89,6 +92,7 @@ export interface UserProfile {
   'coins' : bigint,
   'finishedSetup' : boolean,
   'nameChangeCount' : bigint,
+  'dailyStudyGoal' : bigint,
 }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -123,8 +127,11 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addNote' : ActorMethod<[string, string, string], bigint>,
   'addNoteImage' : ActorMethod<[bigint, ExternalBlob], undefined>,
-  'addReminder' : ActorMethod<[string, bigint], bigint>,
-  'addTask' : ActorMethod<[string, string, string, bigint], bigint>,
+  'addReminder' : ActorMethod<[string, bigint, [] | [bigint]], bigint>,
+  'addTask' : ActorMethod<
+    [string, string, string, bigint, Array<string>, [] | [bigint]],
+    bigint
+  >,
   'addTimetableEntry' : ActorMethod<
     [string, string, bigint, bigint, string],
     bigint
@@ -145,12 +152,14 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCoinBalance' : ActorMethod<[], bigint>,
   'getCurrentAndNextLevelStage' : ActorMethod<[], LevelStatus>,
+  'getDailyStudyGoal' : ActorMethod<[], [] | [bigint]>,
   'getFocusTimerState' : ActorMethod<[], [] | [PersistentFocusTimer]>,
   'getFullPersistentStopwatchState' : ActorMethod<[], [boolean, bigint]>,
   'getNewUserNeedsOnboarding' : ActorMethod<[], boolean>,
   'getPersistentStopwatchElapsedTime' : ActorMethod<[], bigint>,
   'getPersistentStopwatchState' : ActorMethod<[], [] | [PersistentStopwatch]>,
   'getStudyStreak' : ActorMethod<[], bigint>,
+  'getTasksByTag' : ActorMethod<[string], Array<Task>>,
   'getTimerSessions' : ActorMethod<[], Array<TimerSessionV2>>,
   'getTimetableEntries' : ActorMethod<[], Array<TimetableEntry>>,
   'getTimetableTickHistoryForEntry' : ActorMethod<
@@ -185,14 +194,18 @@ export interface _SERVICE {
   'toggleTaskCompletion' : ActorMethod<[bigint], undefined>,
   'toggleTimetableEntryForToday' : ActorMethod<[bigint], boolean>,
   'updateCallerProfile' : ActorMethod<[[] | [ExternalBlob], string], undefined>,
+  'updateDailyStudyGoal' : ActorMethod<[bigint], bigint>,
   'updateFocusTimerState' : ActorMethod<[bigint, boolean], undefined>,
   'updateNote' : ActorMethod<
     [bigint, string, string, Array<ExternalBlob>, Array<ExternalBlob>],
     undefined
   >,
-  'updateReminder' : ActorMethod<[bigint, string, bigint], undefined>,
+  'updateReminder' : ActorMethod<
+    [bigint, string, bigint, [] | [bigint]],
+    undefined
+  >,
   'updateTask' : ActorMethod<
-    [bigint, string, string, string, bigint],
+    [bigint, string, string, string, bigint, Array<string>, [] | [bigint]],
     undefined
   >,
   'updateTimetableEntry' : ActorMethod<

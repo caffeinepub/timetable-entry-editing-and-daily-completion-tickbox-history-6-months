@@ -1,14 +1,18 @@
 # Specification
 
 ## Summary
-**Goal:** Improve reliability of profile avatar uploads, add a weekly study-time graph, and enable full reminder/task management with accurate in-app reminder notifications.
+**Goal:** Add study analytics (monthly summary, heatmap), a configurable daily study goal, task tagging, embedded notes for tasks/reminders, and an expanded coin reward shop with permanent ownership.
 
 **Planned changes:**
-- Fix profile photo upload/persistence so the saved avatar reliably renders immediately, after reload, and after logout/login, with clear error handling on failure.
-- Add a weekly (last 7 days) study-time graph showing minutes per day with both a combined total and a per-mode breakdown (Pomodoro vs Custom timer vs Stopwatch), backed by persisted data (including explicit 0-minute days).
-- Add Edit/Delete actions for reminders (update at least title and date/time), persist changes, and keep Upcoming Reminders in sync via existing React Query invalidation with user-ownership enforcement.
-- Implement in-app browser notifications that fire at the reminder time while the app is open, avoid duplicate notifications per reminder, and show guidance when notification permissions are not granted.
-- Add Edit/Delete actions for tasks (update at minimum title, plus description/subject/priority if present), persist changes, keep tasks list in sync via existing React Query invalidation, and enforce user ownership.
-- Allow tasks’ completion to be toggled both directions (completed ↔ not completed) with persistence and proper movement between Completed/Pending states.
+- Backend: add a monthly study summary endpoint (total minutes + best 7-day week within the month) computed from existing study sessions across Pomodoro, Custom timer, and Stopwatch.
+- Frontend: add an authenticated Monthly Study Summary view with month selector, plus loading/empty states and React Query fetching/refresh.
+- Backend: add a per-day aggregated study minutes endpoint for a recent window (at minimum last 90 days), suitable for a continuous heatmap.
+- Frontend: add a GitHub-style study heatmap view with intensity legend and day tooltip/popover, loaded via React Query with loading state.
+- Backend: persist a per-user daily study goal (minutes) in the user profile and expose get/update methods with basic validation and sensible defaults.
+- Frontend: add a daily goal progress UI (today’s minutes vs goal) and a control to set/update the daily goal, with React Query invalidation after updates/sessions.
+- Backend: extend tasks to support 0..N text tags; support setting/updating tags and returning tags in task reads, preserving existing task data via conditional migration if needed.
+- Frontend: add task tag add/remove in task create/edit and a simple To-Do filter by selected tag (including an “All” view), persisting via backend + React Query refresh.
+- Backend + Frontend: support linking/unlinking existing notes to tasks and reminders, and creating a new note from within task/reminder edit flows; persist associations and handle missing/deleted notes gracefully.
+- Backend + Frontend: expand the coin reward shop with at least one new purchasable item category beyond backgrounds, including coin cost, owned/unowned state, purchase confirmation, purchase blocking on insufficient coins, and per-user permanent ownership to prevent double-charging.
 
-**User-visible outcome:** Users can reliably set and keep their profile avatar, view a 7-day study-time chart with totals and per-mode breakdown, edit/delete reminders and tasks, receive accurate in-app reminder notifications while the app is open (without duplicates), and toggle tasks between completed and not completed.
+**User-visible outcome:** Users can view a monthly study summary and a recent study heatmap, set a daily study goal and track progress, tag tasks and filter by tag, attach notes to tasks and reminders (including creating notes inline), and buy additional shop items with coins with ownership saved so items aren’t recharged when reused.

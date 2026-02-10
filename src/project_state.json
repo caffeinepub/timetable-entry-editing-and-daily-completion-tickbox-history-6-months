@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 19,
-  "summary": "Timetable app enhancements planned: editable/deletable timetable entries, daily reset completion tickboxes with completion history tracking, a coin system (initial 50; stopwatch rewards capped daily), monetized photo uploads (200 coins), permanent ownership of purchased backgrounds, timetable history access via 🔥 button, a daily study streak (10+ minutes/day), and a new coin-gated multi-stage Level system (50 levels × 5 ranks) with sequential unlocks, while ensuring the app is not renamed and AI-generated background pricing is unchanged. Additionally requested: weekly study-time graph aggregating Pomodoro + Custom + Stopwatch (with separate visibility), reminders editable/deletable with notifications, and tasks editable/deletable (plus ability to unselect).",
+  "projectStateVersion": 21,
+  "summary": "Scope expanded to include additional productivity/analytics features on top of existing timetable, streak, coin/levels, reminders, and tasks work: add a monthly study summary view, task categories/tags, a daily study goal progress bar, a study-day heatmap calendar, notes inside tasks/reminders, and an expanded coin reward shop.",
   "architectural_notes": [
     "Do not rename the app (explicit requirement).",
     "Timetable completion tracking requires backend schema changes and may require a migration (main.mo/migration.mo loop risk).",
@@ -18,7 +18,7 @@
     "Avatar is not being added/applied (user reports avatar not added).",
     "Profile photo/avatar is still not working as expected after the latest deployment (user reports it still fails)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-add-support-for-editing-an-existing-timetable-entry-while-keeping-the-schedule-the-same-the-entry-s-date-time-starttime-endtime-must-not-change-but-the-user-must-be-able-to-update-non-schedule-fields-at-minimum-title-optionally-activitytype-and-colorcode",
@@ -227,6 +227,62 @@
         "REQ-33"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-monthly-study-summary-ui-view-in-the-authenticated-experience-that-displays-the-selected-month-s-total-minutes-studied-and-the-best-week-for-that-month-with-a-simple-month-selector-e-g-previous-next-month",
+      "title": "Add a Monthly Study Summary UI view in the authenticated experience that displays the selected month’s total minutes studied and the best week for that month, with a simple month selector (e.g., previous/next month).",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-study-day-heatmap-ui-view-github-style-that-visualizes-daily-study-minutes-over-the-recent-window-at-minimum-last-90-days-using-intensity-levels-plus-a-legend-that-explains-the-intensity-meaning-in-english",
+      "title": "Add a Study-Day Heatmap UI view (GitHub-style) that visualizes daily study minutes over the recent window (at minimum: last 90 days) using intensity levels, plus a legend that explains the intensity meaning in English.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-daily-goal-progress-bar-ui-that-shows-today-s-studied-minutes-versus-the-user-s-configured-daily-goal-and-provide-a-simple-ui-control-to-set-update-the-daily-goal-in-minutes",
+      "title": "Add a Daily Goal progress bar UI that shows today’s studied minutes versus the user’s configured daily goal, and provide a simple UI control to set/update the daily goal (in minutes).",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-task-tags-ui-allow-users-to-add-remove-tags-on-tasks-and-provide-a-simple-filter-to-view-tasks-by-a-selected-tag-including-an-all-view",
+      "title": "Add Task Tags UI: allow users to add/remove tags on tasks, and provide a simple filter to view tasks by a selected tag (including an ‘All’ view).",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-notes-inside-each-task-allow-attaching-an-existing-note-to-a-task-by-reference-and-or-creating-a-new-note-from-within-the-task-edit-flow-with-backend-persistence-of-the-task-note-association",
+      "title": "Add ‘Notes inside each task’: allow attaching an existing note to a task (by reference) and/or creating a new note from within the task edit flow, with backend persistence of the task↔note association.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-notes-inside-each-reminder-allow-attaching-an-existing-note-to-a-reminder-by-reference-and-or-creating-a-new-note-from-within-the-reminder-edit-flow-with-backend-persistence-of-the-reminder-note-association",
+      "title": "Add ‘Notes inside each reminder’: allow attaching an existing note to a reminder (by reference) and/or creating a new note from within the reminder edit flow, with backend persistence of the reminder↔note association.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expand-the-coin-reward-shop-by-adding-additional-purchasable-items-beyond-backgrounds-with-clear-item-listing-coin-costs-purchase-confirmation-and-per-user-permanent-ownership-so-previously-purchased-items-are-not-charged-again-when-re-equipped-used",
+      "title": "Expand the coin reward shop by adding additional purchasable items beyond backgrounds, with clear item listing, coin costs, purchase confirmation, and per-user permanent ownership so previously purchased items are not charged again when re-equipped/used.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -416,6 +472,74 @@
       "id": "AR-32",
       "summary": "Allow tasks/reminders to be unselected (toggle off a selected state)",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Add a monthly study summary view (e.g., total minutes + best week)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Add task categories/tags to group tasks",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Add a daily goal progress bar showing progress toward a daily study target",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Add a heatmap calendar for study days (GitHub-style)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Add a notes section inside each task or reminder",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Expand the reward shop (more items to spend coins on)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add backend support for a Monthly Study Summary that returns, at minimum, (a) total study minutes for a selected month and (b) the best week (highest 7-day total) within that month, computed from the user’s recorded study sessions (Pomodoro + Custom timer + Stopwatch) already tracked by the app.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Add backend support for a Study-Day Heatmap calendar by exposing per-day study minutes for a recent window (at minimum: last 90 days), derived from the user’s recorded study sessions (all modes combined).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Add a configurable Daily Study Goal feature: persist a per-user daily goal (in minutes) in the backend user profile, and expose methods to get/update that goal for the caller.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Add Task Categories/Tags: extend the task data model to support assigning one or more tags (text labels) to each task, and add backend methods to create/update tags on tasks and to list tasks with their tags for the caller.",
+      "reqIds": [
+        "REQ-40"
+      ],
       "status": "pending"
     }
   ],

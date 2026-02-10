@@ -1,99 +1,154 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-09T16:35:44.358Z",
+  "generatedAt": "2026-02-10T06:23:29.948Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 6,
-    "implemented": 6,
+    "total": 11,
+    "implemented": 7,
     "items": [
       {
-        "id": "REQ-28",
-        "summary": "Fix the profile photo (avatar) feature end-to-end so that uploading a profile photo from the Profile page reliably persists and renders as the user’s avatar, including after reload and after logging out + logging back in.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ProfileSection.tsx",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ProfileSection.tsx",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/hooks/useQueries.ts"
-        ]
+        "id": "REQ-34",
+        "summary": "Add backend support for a Monthly Study Summary that returns, at minimum, (a) total study minutes for a selected month and (b) the best week (highest 7-day total) within that month, computed from the user’s recorded study sessions (Pomodoro + Custom timer + Stopwatch) already tracked by the app.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-29",
-        "summary": "Add a weekly study-time graph in the authenticated UI that shows minutes studied for the last 7 days, including (1) a combined total across Pomodoro + Custom timer + Stopwatch and (2) a per-mode breakdown so Pomodoro, Custom, and Stopwatch minutes are distinguishable.",
+        "id": "REQ-35",
+        "summary": "Add a Monthly Study Summary UI view in the authenticated experience that displays the selected month’s total minutes studied and the best week for that month, with a simple month selector (e.g., previous/next month).",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/utils/weeklyStudyGraph.ts",
-          "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+          "frontend/src/components/MonthlyStudySummaryView.tsx",
           "frontend/src/components/ProfileSection.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/utils/weeklyStudyGraph.ts",
-          "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+          "frontend/src/components/MonthlyStudySummaryView.tsx",
           "frontend/src/components/ProfileSection.tsx"
         ]
       },
       {
-        "id": "REQ-30",
-        "summary": "Add support to edit and delete reminders from the Reminders UI, persisting changes in the backend and keeping the list of upcoming reminders in sync via existing React Query invalidation.",
+        "id": "REQ-36",
+        "summary": "Add backend support for a Study-Day Heatmap calendar by exposing per-day study minutes for a recent window (at minimum: last 90 days), derived from the user’s recorded study sessions (all modes combined).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-37",
+        "summary": "Add a Study-Day Heatmap UI view (GitHub-style) that visualizes daily study minutes over the recent window (at minimum: last 90 days) using intensity levels, plus a legend that explains the intensity meaning in English.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/studyHeatmap.ts",
+          "frontend/src/components/StudyHeatmapView.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/StudyHeatmapView.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-38",
+        "summary": "Add a configurable Daily Study Goal feature: persist a per-user daily goal (in minutes) in the backend user profile, and expose methods to get/update that goal for the caller.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-39",
+        "summary": "Add a Daily Goal progress bar UI that shows today’s studied minutes versus the user’s configured daily goal, and provide a simple UI control to set/update the daily goal (in minutes).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/todayStudyMinutes.ts",
+          "frontend/src/components/DailyGoalProgressCard.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/DailyGoalProgressCard.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-40",
+        "summary": "Add Task Categories/Tags: extend the task data model to support assigning one or more tags (text labels) to each task, and add backend methods to create/update tags on tasks and to list tasks with their tags for the caller.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-41",
+        "summary": "Add Task Tags UI: allow users to add/remove tags on tasks, and provide a simple filter to view tasks by a selected tag (including an ‘All’ view).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/utils/taskTags.ts",
+          "frontend/src/components/TodoSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/TodoSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-42",
+        "summary": "Add ‘Notes inside each task’: allow attaching an existing note to a task (by reference) and/or creating a new note from within the task edit flow, with backend persistence of the task↔note association.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/NoteLinker.tsx",
+          "frontend/src/components/TodoSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/backend.d.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/NoteLinker.tsx",
+          "frontend/src/components/TodoSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-43",
+        "summary": "Add ‘Notes inside each reminder’: allow attaching an existing note to a reminder (by reference) and/or creating a new note from within the reminder edit flow, with backend persistence of the reminder↔note association.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
           "frontend/src/components/RemindersSection.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
           "frontend/src/components/RemindersSection.tsx"
         ]
       },
       {
-        "id": "REQ-31",
-        "summary": "Ensure reminders trigger an in-app browser notification at the reminder time as accurately as possible while the app is open, and avoid duplicate notifications for the same reminder.",
+        "id": "REQ-44",
+        "summary": "Expand the coin reward shop by adding additional purchasable items beyond backgrounds, with clear item listing, coin costs, purchase confirmation, and per-user permanent ownership so previously purchased items are not charged again when re-equipped/used.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/lib/NotificationManager.ts",
-          "frontend/src/components/ReminderNotifications.tsx"
+          "frontend/src/components/RewardShopSection.tsx",
+          "frontend/src/components/BackgroundSettings.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/backend.d.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/lib/NotificationManager.ts",
-          "frontend/src/components/ReminderNotifications.tsx"
-        ]
-      },
-      {
-        "id": "REQ-32",
-        "summary": "Add support to edit and delete tasks in the Tasks (Todo) UI, persisting changes in the backend and keeping the tasks list in sync via existing React Query invalidation.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/TodoSection.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/TodoSection.tsx"
-        ]
-      },
-      {
-        "id": "REQ-33",
-        "summary": "Allow tasks to be unselected (i.e., completion can be toggled both directions) so a user can mark a task completed and later mark it as not completed again.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/TodoSection.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/components/TodoSection.tsx"
+          "frontend/src/components/RewardShopSection.tsx"
         ]
       }
     ]
@@ -102,23 +157,21 @@
     "backend/main.mo",
     "backend/migration.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/Header.tsx",
+    "frontend/src/components/DailyGoalProgressCard.tsx",
+    "frontend/src/components/MonthlyStudySummaryView.tsx",
+    "frontend/src/components/NoteLinker.tsx",
     "frontend/src/components/ProfileSection.tsx",
-    "frontend/src/components/ReminderNotifications.tsx",
     "frontend/src/components/RemindersSection.tsx",
+    "frontend/src/components/RewardShopSection.tsx",
+    "frontend/src/components/StudyHeatmapView.tsx",
     "frontend/src/components/TodoSection.tsx",
-    "frontend/src/components/WeeklyStudyTimeGraph.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/lib/NotificationManager.ts",
-    "frontend/src/utils/weeklyStudyGraph.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

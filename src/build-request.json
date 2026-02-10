@@ -1,136 +1,243 @@
 {
   "kind": "build_request",
-  "title": "Fix profile photo reliability; add weekly study time graph; enable edit/delete for reminders and tasks with accurate in-app notifications",
+  "title": "Add monthly study summary, daily goal, study heatmap, task tags, embedded notes, and expanded reward shop",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-28",
-      "text": "Fix the profile photo (avatar) feature end-to-end so that uploading a profile photo from the Profile page reliably persists and renders as the user’s avatar, including after reload and after logging out + logging back in.",
-      "target": "both",
+      "id": "REQ-34",
+      "text": "Add backend support for a Monthly Study Summary that returns, at minimum, (a) total study minutes for a selected month and (b) the best week (highest 7-day total) within that month, computed from the user’s recorded study sessions (Pomodoro + Custom timer + Stopwatch) already tracked by the app.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "Still profile photo is not working as expected."
+          "add it all"
         ]
       },
       "acceptanceCriteria": [
-        "From the Profile page, selecting an image and saving updates the user profile and shows the new avatar immediately.",
-        "After a full page reload, the avatar still displays the uploaded image (not the fallback).",
-        "After logging out and logging back in, the avatar still displays the uploaded image.",
-        "If upload/persist fails for any reason, the UI shows a clear error message and the previous avatar remains unchanged."
+        "A new backend method exists to fetch a monthly study summary for a given month (and year if needed) for the caller.",
+        "Monthly totals include minutes from all supported study modes (Pomodoro, Custom timer, Stopwatch).",
+        "The returned summary includes a best-week value for that month based on a 7-day window fully contained within the month.",
+        "If the user has no study sessions in the selected month, the method returns zero totals and does not trap."
       ]
     },
     {
-      "id": "REQ-29",
-      "text": "Add a weekly study-time graph in the authenticated UI that shows minutes studied for the last 7 days, including (1) a combined total across Pomodoro + Custom timer + Stopwatch and (2) a per-mode breakdown so Pomodoro, Custom, and Stopwatch minutes are distinguishable.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "Also add we can see weekly graph that we can see how many minutes we studied with pomodoro and custom together and stopwatch different.",
-          "we can see weekly study time graph."
-        ]
-      },
-      "acceptanceCriteria": [
-        "The UI displays a 7-day view (including day labels) with minutes studied per day.",
-        "The UI provides a combined total view and a breakdown by mode (Pomodoro vs Custom vs Stopwatch).",
-        "The data used in the graph is persisted and is consistent after reload/log out + log in.",
-        "Days with zero study show as 0 minutes (no missing days)."
-      ]
-    },
-    {
-      "id": "REQ-30",
-      "text": "Add support to edit and delete reminders from the Reminders UI, persisting changes in the backend and keeping the list of upcoming reminders in sync via existing React Query invalidation.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages"
-        ],
-        "quotes": [
-          "we can delete and edit remainders"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each reminder in the Upcoming Reminders list has actions to Edit and Delete.",
-        "Editing a reminder allows updating at least the title and reminder date/time, and the updated reminder appears correctly in the list after saving.",
-        "Deleting a reminder removes it from the list and it does not reappear after reload.",
-        "Backend enforces that a user can only edit/delete their own reminders."
-      ]
-    },
-    {
-      "id": "REQ-31",
-      "text": "Ensure reminders trigger an in-app browser notification at the reminder time as accurately as possible while the app is open, and avoid duplicate notifications for the same reminder.",
+      "id": "REQ-35",
+      "text": "Add a Monthly Study Summary UI view in the authenticated experience that displays the selected month’s total minutes studied and the best week for that month, with a simple month selector (e.g., previous/next month).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "they'll send notification at the time of remainder",
-          "Reminders should send a notification at the correct time."
+          "add it all"
         ]
       },
       "acceptanceCriteria": [
-        "When the current time reaches a reminder’s scheduled time (while the app is open), the app shows a browser notification for that reminder.",
-        "Notifications do not fire more than once per reminder.",
-        "If notification permissions are not granted, the app presents a clear, user-facing message prompting the user to enable notifications, and reminders still remain visible in the list."
+        "The UI shows the selected month label and two metrics: total study minutes and best-week minutes.",
+        "The UI can switch between months and updates the displayed numbers accordingly.",
+        "Loading and empty states are handled with clear English text.",
+        "Data is fetched via React Query and remains consistent after new study sessions are recorded (relevant queries invalidate/refetch)."
       ]
     },
     {
-      "id": "REQ-32",
-      "text": "Add support to edit and delete tasks in the Tasks (Todo) UI, persisting changes in the backend and keeping the tasks list in sync via existing React Query invalidation.",
-      "target": "both",
+      "id": "REQ-36",
+      "text": "Add backend support for a Study-Day Heatmap calendar by exposing per-day study minutes for a recent window (at minimum: last 90 days), derived from the user’s recorded study sessions (all modes combined).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "also task can also be edited and deleted"
+          "add it all"
         ]
       },
       "acceptanceCriteria": [
-        "Each task has actions to Edit and Delete.",
-        "Editing supports updating at minimum: title; and also updates description, subject, and priority if present.",
-        "Deleting a task removes it from the list and it does not reappear after reload.",
-        "Backend enforces that a user can only edit/delete their own tasks."
+        "A new backend method exists to fetch per-day aggregated study minutes for the caller for a defined recent range (at minimum last 90 days).",
+        "Returned data includes an unambiguous day key (e.g., UTC day start timestamp or YYYY-MM-DD) and total minutes for that day.",
+        "Days with no study time are either omitted or included with 0 minutes, but the frontend can reliably render a continuous heatmap range without guessing.",
+        "The method does not trap for new users with no sessions."
       ]
     },
     {
-      "id": "REQ-33",
-      "text": "Allow tasks to be unselected (i.e., completion can be toggled both directions) so a user can mark a task completed and later mark it as not completed again.",
-      "target": "both",
+      "id": "REQ-37",
+      "text": "Add a Study-Day Heatmap UI view (GitHub-style) that visualizes daily study minutes over the recent window (at minimum: last 90 days) using intensity levels, plus a legend that explains the intensity meaning in English.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages"
+          "msg-user-1"
         ],
         "quotes": [
-          "also be unselected"
+          "add it all"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the task completion checkbox toggles between completed and not completed.",
-        "A completed task can be returned to the Pending list after being unselected.",
-        "The completion state persists after reload."
+        "A heatmap grid renders for the selected time window (at minimum last 90 days).",
+        "Each day cell’s intensity reflects the minutes studied that day; days with 0 minutes render as the lowest intensity.",
+        "Hover or click on a day shows an English tooltip/popover with the date and minutes studied.",
+        "The heatmap data is loaded via React Query and displays an appropriate loading state."
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Add a configurable Daily Study Goal feature: persist a per-user daily goal (in minutes) in the backend user profile, and expose methods to get/update that goal for the caller.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "User profile persistence supports a daily study goal value (minutes) for each user.",
+        "A backend method exists to update the caller’s daily goal minutes with basic validation (e.g., non-negative and reasonable upper bound).",
+        "A backend method (or existing profile fetch) allows the frontend to read the caller’s current daily goal minutes.",
+        "Existing users without a goal have a sensible default (e.g., 0 meaning ‘no goal set’) and the backend does not trap."
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "text": "Add a Daily Goal progress bar UI that shows today’s studied minutes versus the user’s configured daily goal, and provide a simple UI control to set/update the daily goal (in minutes).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "If the daily goal is set (> 0), the UI shows a progress bar with ‘X / Goal minutes’ in English and a percent completion.",
+        "If the daily goal is not set (0 or missing), the UI prompts the user in English to set a goal and does not show misleading progress.",
+        "Updating the goal triggers a backend update and the displayed goal/progress refreshes via React Query invalidation.",
+        "Today’s studied minutes include Pomodoro + Custom timer + Stopwatch and update after recording a session (via existing query invalidation patterns)."
+      ]
+    },
+    {
+      "id": "REQ-40",
+      "text": "Add Task Categories/Tags: extend the task data model to support assigning one or more tags (text labels) to each task, and add backend methods to create/update tags on tasks and to list tasks with their tags for the caller.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Tasks can store tags (0..N) as text labels and return them in task reads.",
+        "Task create/update flows support setting tags without breaking existing tasks created before this feature.",
+        "A caller can update a task’s tags without affecting unrelated fields (title/description/subject/priority/completed).",
+        "If a migration/state upgrade is needed due to schema changes, it is implemented using the project’s conditional migration approach and does not wipe existing user data."
+      ]
+    },
+    {
+      "id": "REQ-41",
+      "text": "Add Task Tags UI: allow users to add/remove tags on tasks, and provide a simple filter to view tasks by a selected tag (including an ‘All’ view).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Task create/edit UI supports adding/removing tags with clear English labels.",
+        "The To-Do list can be filtered by a selected tag and returns to an ‘All’ view reliably.",
+        "Tag changes persist to the backend and the tasks list refreshes via React Query invalidation.",
+        "The UI behaves sensibly for tasks with no tags (still visible in ‘All’; excluded from specific-tag filters)."
+      ]
+    },
+    {
+      "id": "REQ-42",
+      "text": "Add ‘Notes inside each task’: allow attaching an existing note to a task (by reference) and/or creating a new note from within the task edit flow, with backend persistence of the task↔note association.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A task can be associated with zero or more notes, and the association persists across reload and re-login.",
+        "From the task UI, a user can link an existing note to a task and unlink it later.",
+        "From the task UI, a user can create a new note and attach it to the task in the same flow.",
+        "Deleting a note that is linked to tasks does not break task rendering; tasks either drop the missing link or show a clear English ‘note not found’ fallback."
+      ]
+    },
+    {
+      "id": "REQ-43",
+      "text": "Add ‘Notes inside each reminder’: allow attaching an existing note to a reminder (by reference) and/or creating a new note from within the reminder edit flow, with backend persistence of the reminder↔note association.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A reminder can be associated with zero or more notes, and the association persists across reload and re-login.",
+        "From the reminders UI, a user can link/unlink existing notes to a reminder.",
+        "From the reminders UI, a user can create a new note and attach it to the reminder in the same flow.",
+        "Reminder notification behavior remains unchanged and does not duplicate due to note changes."
+      ]
+    },
+    {
+      "id": "REQ-44",
+      "text": "Expand the coin reward shop by adding additional purchasable items beyond backgrounds, with clear item listing, coin costs, purchase confirmation, and per-user permanent ownership so previously purchased items are not charged again when re-equipped/used.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-1"
+        ],
+        "quotes": [
+          "add it all"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The app shows an expanded shop list with at least one new item category beyond backgrounds (cosmetic/non-functional items are acceptable).",
+        "Each item has a clear English name, a coin cost, and an owned/unowned state.",
+        "Purchasing an item deducts coins once, persists ownership for the user, and prevents repurchase charges for already-owned items.",
+        "Coin balance and any relevant ownership queries are refreshed via React Query invalidation after purchase.",
+        "If the user does not have enough coins, the purchase is blocked and an English error message is shown."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor with all logic in backend/main.mo.",
-    "Do not edit files under frontend/src/components/ui or other frontend immutable paths listed in SYSTEM_CONTEXT.",
-    "User-facing text must be in English.",
-    "Do not add real-time infrastructure (no WebSockets/push notifications); reminder notifications must be limited to what a web app can do while open."
+    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
+    "Use English for all new user-facing UI text.",
+    "If schema/state changes require migration, follow the project’s conditional migration policy and preserve existing user data."
   ],
   "nonGoals": [
-    "Implementing OS-level push notifications or notifications when the browser/app is fully closed.",
-    "Adding third-party analytics or external databases to store graph data.",
-    "Changing timetable entry editing/deletion/tickbox/history behavior (already covered by existing features)."
+    "Implementing third-party authentication beyond Internet Identity.",
+    "Adding real-time features (WebSockets, push notifications, chat).",
+    "Integrating external databases or non-Motoko backend services.",
+    "Changing or removing any existing timetable, streak, reminders, tasks, level, coins, or background functionality beyond what is necessary to add the requested features."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }
