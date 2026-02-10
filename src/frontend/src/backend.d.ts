@@ -14,14 +14,14 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
-export interface UserProfile {
-    bio: string;
-    profileImage?: ExternalBlob;
-    name: string;
-    coins: bigint;
-    finishedSetup: boolean;
-    nameChangeCount: bigint;
-    dailyStudyGoal: bigint;
+export interface StreakMilestoneRewards {
+    has10DayReward: boolean;
+    has30DayReward: boolean;
+    hasScholarGoldBadge: boolean;
+}
+export interface PersistentFocusTimer {
+    isActive: boolean;
+    remainingMinutes: bigint;
 }
 export interface Note {
     id: bigint;
@@ -55,6 +55,7 @@ export interface PersistentStopwatch {
 }
 export interface Task {
     id: bigint;
+    completedAt?: Time;
     title: string;
     subject: string;
     noteId?: bigint;
@@ -96,9 +97,14 @@ export interface StudySession {
     completed: boolean;
     durationMinutes: bigint;
 }
-export interface PersistentFocusTimer {
-    isActive: boolean;
-    remainingMinutes: bigint;
+export interface UserProfile {
+    bio: string;
+    profileImage?: ExternalBlob;
+    name: string;
+    coins: bigint;
+    finishedSetup: boolean;
+    nameChangeCount: bigint;
+    dailyStudyGoal: bigint;
 }
 export enum UserRole {
     admin = "admin",
@@ -123,6 +129,7 @@ export interface backendInterface {
     deleteTimetableEntry(entryId: bigint): Promise<void>;
     getAllNotes(): Promise<Array<Note>>;
     getAllTasks(): Promise<Array<Task>>;
+    getAvailableStreakFreezes(): Promise<bigint>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCoinBalance(): Promise<bigint>;
@@ -133,6 +140,7 @@ export interface backendInterface {
     getNewUserNeedsOnboarding(): Promise<boolean>;
     getPersistentStopwatchElapsedTime(): Promise<bigint>;
     getPersistentStopwatchState(): Promise<PersistentStopwatch | null>;
+    getStreakMilestoneRewards(): Promise<StreakMilestoneRewards>;
     getStudyStreak(): Promise<bigint>;
     getTasksByTag(tag: string): Promise<Array<Task>>;
     getTimerSessions(): Promise<Array<TimerSessionV2>>;
@@ -143,6 +151,7 @@ export interface backendInterface {
     getUpcomingReminders(currentTime: bigint): Promise<Array<Reminder>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getWeeklyStudySessions(): Promise<Array<StudySession>>;
+    hasActiveStudyStreak(): Promise<boolean>;
     initializeProfile(name: string, bio: string): Promise<void>;
     isBackgroundOwned(backgroundId: string): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
@@ -150,6 +159,7 @@ export interface backendInterface {
     pausePersistentStopwatch(): Promise<void>;
     purchaseCustomBackground(backgroundId: string): Promise<boolean>;
     purchaseNextLevelStage(): Promise<LevelStatus>;
+    purchaseStreakFreeze(): Promise<void>;
     recordTimerSession(durationMinutes: bigint, completed: boolean): Promise<bigint>;
     removeNoteImage(noteId: bigint, imageUrl: ExternalBlob): Promise<void>;
     removeVoiceNote(noteId: bigint, voiceNoteUrl: ExternalBlob): Promise<void>;
@@ -169,4 +179,5 @@ export interface backendInterface {
     updateReminder(reminderId: bigint, title: string, reminderTime: bigint, noteId: bigint | null): Promise<void>;
     updateTask(taskId: bigint, title: string, description: string, subject: string, priority: bigint, tags: Array<string>, noteId: bigint | null): Promise<void>;
     updateTimetableEntry(id: bigint, newTitle: string, newActivityType: string, newColorCode: string): Promise<void>;
+    useStreakFreeze(): Promise<boolean>;
 }

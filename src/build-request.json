@@ -1,243 +1,74 @@
 {
   "kind": "build_request",
-  "title": "Add monthly study summary, daily goal, study heatmap, task tags, embedded notes, and expanded reward shop",
+  "title": "Update Level rank labels and apply per-level increasing coin cost (Level 1 = 50, Level 2 = 100, +50 per level up to 50)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-34",
-      "text": "Add backend support for a Monthly Study Summary that returns, at minimum, (a) total study minutes for a selected month and (b) the best week (highest 7-day total) within that month, computed from the user’s recorded study sessions (Pomodoro + Custom timer + Stopwatch) already tracked by the app.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new backend method exists to fetch a monthly study summary for a given month (and year if needed) for the caller.",
-        "Monthly totals include minutes from all supported study modes (Pomodoro, Custom timer, Stopwatch).",
-        "The returned summary includes a best-week value for that month based on a 7-day window fully contained within the month.",
-        "If the user has no study sessions in the selected month, the method returns zero totals and does not trap."
-      ]
-    },
-    {
-      "id": "REQ-35",
-      "text": "Add a Monthly Study Summary UI view in the authenticated experience that displays the selected month’s total minutes studied and the best week for that month, with a simple month selector (e.g., previous/next month).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The UI shows the selected month label and two metrics: total study minutes and best-week minutes.",
-        "The UI can switch between months and updates the displayed numbers accordingly.",
-        "Loading and empty states are handled with clear English text.",
-        "Data is fetched via React Query and remains consistent after new study sessions are recorded (relevant queries invalidate/refetch)."
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "text": "Add backend support for a Study-Day Heatmap calendar by exposing per-day study minutes for a recent window (at minimum: last 90 days), derived from the user’s recorded study sessions (all modes combined).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A new backend method exists to fetch per-day aggregated study minutes for the caller for a defined recent range (at minimum last 90 days).",
-        "Returned data includes an unambiguous day key (e.g., UTC day start timestamp or YYYY-MM-DD) and total minutes for that day.",
-        "Days with no study time are either omitted or included with 0 minutes, but the frontend can reliably render a continuous heatmap range without guessing.",
-        "The method does not trap for new users with no sessions."
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "text": "Add a Study-Day Heatmap UI view (GitHub-style) that visualizes daily study minutes over the recent window (at minimum: last 90 days) using intensity levels, plus a legend that explains the intensity meaning in English.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "A heatmap grid renders for the selected time window (at minimum last 90 days).",
-        "Each day cell’s intensity reflects the minutes studied that day; days with 0 minutes render as the lowest intensity.",
-        "Hover or click on a day shows an English tooltip/popover with the date and minutes studied.",
-        "The heatmap data is loaded via React Query and displays an appropriate loading state."
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "text": "Add a configurable Daily Study Goal feature: persist a per-user daily goal (in minutes) in the backend user profile, and expose methods to get/update that goal for the caller.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "User profile persistence supports a daily study goal value (minutes) for each user.",
-        "A backend method exists to update the caller’s daily goal minutes with basic validation (e.g., non-negative and reasonable upper bound).",
-        "A backend method (or existing profile fetch) allows the frontend to read the caller’s current daily goal minutes.",
-        "Existing users without a goal have a sensible default (e.g., 0 meaning ‘no goal set’) and the backend does not trap."
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "text": "Add a Daily Goal progress bar UI that shows today’s studied minutes versus the user’s configured daily goal, and provide a simple UI control to set/update the daily goal (in minutes).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "If the daily goal is set (> 0), the UI shows a progress bar with ‘X / Goal minutes’ in English and a percent completion.",
-        "If the daily goal is not set (0 or missing), the UI prompts the user in English to set a goal and does not show misleading progress.",
-        "Updating the goal triggers a backend update and the displayed goal/progress refreshes via React Query invalidation.",
-        "Today’s studied minutes include Pomodoro + Custom timer + Stopwatch and update after recording a session (via existing query invalidation patterns)."
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "text": "Add Task Categories/Tags: extend the task data model to support assigning one or more tags (text labels) to each task, and add backend methods to create/update tags on tasks and to list tasks with their tags for the caller.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Tasks can store tags (0..N) as text labels and return them in task reads.",
-        "Task create/update flows support setting tags without breaking existing tasks created before this feature.",
-        "A caller can update a task’s tags without affecting unrelated fields (title/description/subject/priority/completed).",
-        "If a migration/state upgrade is needed due to schema changes, it is implemented using the project’s conditional migration approach and does not wipe existing user data."
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "text": "Add Task Tags UI: allow users to add/remove tags on tasks, and provide a simple filter to view tasks by a selected tag (including an ‘All’ view).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Task create/edit UI supports adding/removing tags with clear English labels.",
-        "The To-Do list can be filtered by a selected tag and returns to an ‘All’ view reliably.",
-        "Tag changes persist to the backend and the tasks list refreshes via React Query invalidation.",
-        "The UI behaves sensibly for tasks with no tags (still visible in ‘All’; excluded from specific-tag filters)."
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "text": "Add ‘Notes inside each task’: allow attaching an existing note to a task (by reference) and/or creating a new note from within the task edit flow, with backend persistence of the task↔note association.",
+      "id": "REQ-66",
+      "text": "Update the Level rank labels shown in the app to exactly use this 5-rank list (in this order) for every Level: \"Noob\", \"Beginner 📈\", \"Advanced Student 💪🏻\", \"Pro Student 🔥\", \"Sigma Student 🗿\" (i.e., remove the 🫠 emoji from the Noob rank everywhere and ensure consistent spelling/casing across UI and backend-derived display text).",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-4"
         ],
         "quotes": [
-          "add it all"
+          "1st lv You want the ranks list to show:\nNoob\nBeginner 📈\nAdvanced Student 💪🏻\nPro Student 🔥\nSigma Student 🗿. cost 50 next lv 2 You want the ranks list to show:\nNoob\nBeginner 📈\nAdvanced Student 💪🏻\nPro Student 🔥\nSigma Student 🗿 cost 100 and till 50 it increases 50"
         ]
       },
       "acceptanceCriteria": [
-        "A task can be associated with zero or more notes, and the association persists across reload and re-login.",
-        "From the task UI, a user can link an existing note to a task and unlink it later.",
-        "From the task UI, a user can create a new note and attach it to the task in the same flow.",
-        "Deleting a note that is linked to tasks does not break task rendering; tasks either drop the missing link or show a clear English ‘note not found’ fallback."
+        "Wherever the app displays the rank list (including any Ranks UI and Level UI), the ranks appear exactly as: Noob; Beginner 📈; Advanced Student 💪🏻; Pro Student 🔥; Sigma Student 🗿.",
+        "The Profile page level tile and any Level status UI no longer displays \"Noob 🫠\"; it displays \"Noob\" instead.",
+        "Any backend-provided Level stage display text uses \"Noob\" (not \"Noob 🫠\") for Level 1 Noob and for any other Level’s Noob stage."
       ]
     },
     {
-      "id": "REQ-43",
-      "text": "Add ‘Notes inside each reminder’: allow attaching an existing note to a reminder (by reference) and/or creating a new note from within the reminder edit flow, with backend persistence of the reminder↔note association.",
+      "id": "REQ-67",
+      "text": "Revise the Level upgrade coin-cost rules end-to-end so the required coin cost depends on the Level number: all paid upgrades within Level 1 cost 50 coins; all paid upgrades within Level 2 cost 100 coins; and for each subsequent Level up to Level 50 the paid upgrade cost increases by 50 coins per Level (i.e., paidUpgradeCost(level) = level * 50). Keep the initial stage (Level 1 - Noob) free (0 coins), keep the rule that Level number stays the same across its 5 ranks before incrementing, and keep the rule that users can only purchase the immediate next stage (no skipping).",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-user-1"
+          "msg-4"
         ],
         "quotes": [
-          "add it all"
+          "Sigma Student 🗿. cost 50 next lv 2 ... Sigma Student 🗿 cost 100 and till 50 it increases 50"
         ]
       },
       "acceptanceCriteria": [
-        "A reminder can be associated with zero or more notes, and the association persists across reload and re-login.",
-        "From the reminders UI, a user can link/unlink existing notes to a reminder.",
-        "From the reminders UI, a user can create a new note and attach it to the reminder in the same flow.",
-        "Reminder notification behavior remains unchanged and does not duplicate due to note changes."
+        "Backend `getCurrentAndNextLevelStage()` (or equivalent existing Level status method) returns `nextStage.requiredCoins` that matches: Level 1 upgrades = 50; Level 2 upgrades = 100; Level 3 upgrades = 150; ...; Level 50 upgrades = 2500 (for any paid upgrade within that Level).",
+        "Backend purchase/upgrade method enforces: Level 1 - Noob is free and cannot be “purchased”; only the immediate next stage can be purchased; the coin amount deducted equals the required cost for the next stage’s Level number; and max level remains Level 50 - Sigma Student 🗿.",
+        "Frontend displays the next upgrade cost using the backend-provided value and does not hard-code 50/100; upgrading at Level 2 correctly shows 100 coins, and upgrading at Level 3 correctly shows 150 coins.",
+        "Attempting to upgrade without enough coins fails with an English user-facing error (via existing error mapping/toast behavior), and the user’s coin balance and level status remain unchanged after the failed attempt."
       ]
     },
     {
-      "id": "REQ-44",
-      "text": "Expand the coin reward shop by adding additional purchasable items beyond backgrounds, with clear item listing, coin costs, purchase confirmation, and per-user permanent ownership so previously purchased items are not charged again when re-equipped/used.",
-      "target": "both",
+      "id": "REQ-68",
+      "text": "Ensure existing users with previously stored Level stage data continue to work after changing the Noob label and pricing rules, without breaking Level status fetching or purchase flow; normalize/handle any legacy stored Noob rank values (e.g., \"Noob 🫠\") so users do not get stuck or see inconsistent labels.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-1"
-        ],
-        "quotes": [
-          "add it all"
+          "msg-4"
         ]
       },
       "acceptanceCriteria": [
-        "The app shows an expanded shop list with at least one new item category beyond backgrounds (cosmetic/non-functional items are acceptable).",
-        "Each item has a clear English name, a coin cost, and an owned/unowned state.",
-        "Purchasing an item deducts coins once, persists ownership for the user, and prevents repurchase charges for already-owned items.",
-        "Coin balance and any relevant ownership queries are refreshed via React Query invalidation after purchase.",
-        "If the user does not have enough coins, the purchase is blocked and an English error message is shown."
+        "For a user whose stored level stage rank value is the legacy string \"Noob 🫠\", the backend returns Level status with rank \"Noob\" and a correctly formatted display text (e.g., \"Level 1 - Noob\").",
+        "Existing users can still call the Level status method and purchase the next stage successfully under the new pricing rules.",
+        "No backend traps occur solely due to legacy level rank strings existing in persisted state."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor (all logic in backend/main.mo).",
-    "Do not edit files under frontend/src/components/ui or any paths listed as immutable in SYSTEM_CONTEXT.",
-    "Use English for all new user-facing UI text.",
-    "If schema/state changes require migration, follow the project’s conditional migration policy and preserve existing user data."
+    "Backend must remain a single Motoko actor in `backend/main.mo` (no additional backend services).",
+    "Only introduce `backend/migration.mo` if a state upgrade is strictly required; prefer backward-compatible normalization when possible.",
+    "Do not edit frontend files under `frontend/src/components/ui`, `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, or `frontend/src/main.tsx`.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Implementing third-party authentication beyond Internet Identity.",
-    "Adding real-time features (WebSockets, push notifications, chat).",
-    "Integrating external databases or non-Motoko backend services.",
-    "Changing or removing any existing timetable, streak, reminders, tasks, level, coins, or background functionality beyond what is necessary to add the requested features."
+    "Adding new ranks beyond the 5 specified ranks.",
+    "Changing the rule that Level number stays the same across the 5 ranks before incrementing to the next Level.",
+    "Allowing users to skip stages or buy non-immediate stages."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

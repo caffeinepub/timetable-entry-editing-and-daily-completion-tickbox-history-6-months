@@ -1,225 +1,53 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Study insights (monthly summary, heatmap, daily goal), task tags & embedded notes, and expanded reward shop UI",
+  "title": "Level ranks label consistency + per-level upgrade cost display and purchase UI",
   "requirements": [
     {
-      "id": "REQ-35",
-      "summary": "Add a Monthly Study Summary view (month selector + totals + best week) in the authenticated UI using React Query.",
+      "id": "REQ-66",
+      "summary": "Ensure the 5 Level rank labels are displayed consistently across the UI and legacy \"Noob 🫠\" is never shown.",
       "acceptanceCriteria": [
-        "The UI shows the selected month label and two metrics: total study minutes and best-week minutes.",
-        "The UI can switch between months and updates the displayed numbers accordingly.",
-        "Loading and empty states are handled with clear English text.",
-        "Data is fetched via React Query and remains consistent after new study sessions are recorded (relevant queries invalidate/refetch)."
+        "Wherever the app displays the rank list (including any Ranks UI and Level UI), the ranks appear exactly as: Noob; Beginner 📈; Advanced Student 💪🏻; Pro Student 🔥; Sigma Student 🗿.",
+        "The Profile page level tile and any Level status UI no longer displays \"Noob 🫠\"; it displays \"Noob\" instead.",
+        "Any backend-provided Level stage display text uses \"Noob\" (not \"Noob 🫠\") for Level 1 Noob and for any other Level’s Noob stage."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Extend the frontend backend type declarations to include the new monthly study summary return type and backend capability signature used by the Monthly Study Summary UI."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a React Query hook (and queryKey conventions) to fetch the monthly study summary for a given year/month, and ensure relevant session-recording mutations invalidate/refetch the summary query."
-        },
-        {
-          "path": "frontend/src/components/MonthlyStudySummaryView.tsx",
+          "path": "frontend/src/utils/levelRanks.ts",
           "operation": "create",
-          "description": "Create a Monthly Study Summary UI component with previous/next month controls, English loading/empty states, and metric display. Use shadcn-ui building blocks (e.g., Card, Button, Skeleton/placeholder patterns where available). Verify the component's usage instructions before implementing."
+          "description": "Add a single source of truth for the 5-rank list (exact strings and order) and a small normalization helper to map any legacy UI values (e.g., \"Noob 🫠\") to \"Noob\"."
         },
         {
           "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Wire the MonthlyStudySummaryView into the authenticated Profile experience (e.g., as a new section near existing study metrics) so it is reachable without adding a new top-level route/tab."
-        }
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "summary": "Add a GitHub-style Study-Day Heatmap view for the recent window (≥90 days) with legend and tooltip, loaded via React Query.",
-      "acceptanceCriteria": [
-        "A heatmap grid renders for the selected time window (at minimum last 90 days).",
-        "Each day cell’s intensity reflects the minutes studied that day; days with 0 minutes render as the lowest intensity.",
-        "Hover or click on a day shows an English tooltip/popover with the date and minutes studied.",
-        "The heatmap data is loaded via React Query and displays an appropriate loading state."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Extend the frontend backend type declarations to include the new heatmap aggregation data type and backend capability signature used by the Study-Day Heatmap UI."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add a React Query hook to fetch per-day study minutes for a recent range (defaulting to last 90 days) and standardize query keys for invalidation after sessions are recorded."
-        },
-        {
-          "path": "frontend/src/utils/studyHeatmap.ts",
-          "operation": "create",
-          "description": "Add date-range and normalization helpers to build a continuous day sequence for the heatmap (ensuring days with no study minutes render at lowest intensity) and to format tooltip labels in English."
-        },
-        {
-          "path": "frontend/src/components/StudyHeatmapView.tsx",
-          "operation": "create",
-          "description": "Create a GitHub-style heatmap grid component with intensity buckets, an English legend, and an English tooltip/popover for day details. Use shadcn-ui primitives for tooltip/popover/card where applicable. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Wire the StudyHeatmapView into the authenticated Profile experience so the heatmap is visible and not an orphan component."
-        }
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "summary": "Add a Daily Study Goal progress UI: show today’s minutes vs goal with progress bar and allow updating the goal, with React Query invalidation.",
-      "acceptanceCriteria": [
-        "If the daily goal is set (> 0), the UI shows a progress bar with ‘X / Goal minutes’ in English and a percent completion.",
-        "If the daily goal is not set (0 or missing), the UI prompts the user in English to set a goal and does not show misleading progress.",
-        "Updating the goal triggers a backend update and the displayed goal/progress refreshes via React Query invalidation.",
-        "Today’s studied minutes include Pomodoro + Custom timer + Stopwatch and update after recording a session (via existing query invalidation patterns)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add/standardize React Query hooks for reading and updating the daily study goal (get/update), and ensure mutations invalidate the goal and any dependent study-minute queries used for today’s progress."
-        },
-        {
-          "path": "frontend/src/utils/todayStudyMinutes.ts",
-          "operation": "create",
-          "description": "Implement a small utility to compute today’s studied minutes from the app’s existing study session sources (Pomodoro + Custom timer + Stopwatch) as returned to the frontend, producing a single number suitable for progress calculation."
-        },
-        {
-          "path": "frontend/src/components/DailyGoalProgressCard.tsx",
-          "operation": "create",
-          "description": "Create a Daily Goal UI card with an English prompt when no goal is set, an input to set/update goal minutes, and a progress bar with English labels and percent. Use shadcn-ui components (Card, Input, Button, Progress if available). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/ProfileSection.tsx",
-          "operation": "modify",
-          "description": "Wire the DailyGoalProgressCard into the authenticated Profile experience near other study metrics so it’s accessible and updates when study sessions or the goal change."
-        }
-      ]
-    },
-    {
-      "id": "REQ-41",
-      "summary": "Add Task Tags UI: add/remove tags in task create/edit and filter the To-Do list by tag (including an All view) with React Query invalidation.",
-      "acceptanceCriteria": [
-        "Task create/edit UI supports adding/removing tags with clear English labels.",
-        "The To-Do list can be filtered by a selected tag and returns to an ‘All’ view reliably.",
-        "Tag changes persist to the backend and the tasks list refreshes via React Query invalidation.",
-        "The UI behaves sensibly for tasks with no tags (still visible in ‘All’; excluded from specific-tag filters)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Update task mutations to send tags when creating/updating tasks and add a query helper to fetch tasks by tag when a tag filter is active (or keep a single tasks query and filter client-side while still persisting tags). Ensure React Query invalidation refreshes task lists after tag edits."
-        },
-        {
-          "path": "frontend/src/utils/taskTags.ts",
-          "operation": "create",
-          "description": "Add helpers for parsing/normalizing user-entered tag strings (trim, dedupe, case normalization strategy) and for computing available tag options from the task list."
-        },
-        {
-          "path": "frontend/src/components/TodoSection.tsx",
-          "operation": "modify",
-          "description": "Add tag entry controls to the Add Task form and Edit Task dialog, render tags as badges, and add an English-labeled tag filter (including an ‘All’ view). Use shadcn-ui components already in use (Input, Badge, Select/Tabs, Dialog). Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "summary": "Add ‘Notes inside each task’ UI: link/unlink existing notes and create a new note from the task edit flow, showing safe fallbacks when notes are missing.",
-      "acceptanceCriteria": [
-        "A task can be associated with zero or more notes, and the association persists across reload and re-login.",
-        "From the task UI, a user can link an existing note to a task and unlink it later.",
-        "From the task UI, a user can create a new note and attach it to the task in the same flow.",
-        "Deleting a note that is linked to tasks does not break task rendering; tasks either drop the missing link or show a clear English ‘note not found’ fallback."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Update frontend type declarations as needed to reflect the task↔note association shape required by the UI (e.g., supporting multiple note references) and any related backend capability signatures used by the new task note-linking UI."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add/adjust React Query hooks and mutations to support linking/unlinking notes to tasks and creating a note from within the task flow, ensuring task and note queries invalidate appropriately."
-        },
-        {
-          "path": "frontend/src/components/NoteLinker.tsx",
-          "operation": "create",
-          "description": "Create a reusable NoteLinker component that can (1) list/select existing notes, (2) create a new note inline, and (3) link/unlink notes for a parent entity, with clear English labels and ‘note not found’ fallback handling. Use shadcn-ui primitives (Dialog/Popover/Select/Button). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/TodoSection.tsx",
-          "operation": "modify",
-          "description": "Integrate NoteLinker into the task create/edit flows to attach/unattach notes and to create-and-attach a note in one flow; display linked notes within the task UI with English fallbacks if referenced notes are missing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-43",
-      "summary": "Add ‘Notes inside each reminder’ UI: link/unlink existing notes and create a new note from the reminder edit flow without changing notification behavior.",
-      "acceptanceCriteria": [
-        "A reminder can be associated with zero or more notes, and the association persists across reload and re-login.",
-        "From the reminders UI, a user can link/unlink existing notes to a reminder.",
-        "From the reminders UI, a user can create a new note and attach it to the reminder in the same flow.",
-        "Reminder notification behavior remains unchanged and does not duplicate due to note changes."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Update frontend type declarations as needed to reflect the reminder↔note association shape required by the UI (e.g., supporting multiple note references) and any related backend capability signatures used by the reminder note-linking UI."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add/adjust React Query hooks/mutations to support linking/unlinking notes to reminders and creating a note from within the reminder flow; ensure reminder and note queries invalidate appropriately without altering reminder-notification scheduling logic."
-        },
-        {
-          "path": "frontend/src/components/RemindersSection.tsx",
-          "operation": "modify",
-          "description": "Integrate the shared NoteLinker component into reminder add/edit dialogs to attach/unattach notes and to create-and-attach a note in one flow, while keeping the existing reminder notification wiring unchanged. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "summary": "Expand the reward shop UI beyond backgrounds: show item listing with costs and owned state, purchase confirmation, and prevent re-charging owned items, with React Query refresh after purchase.",
-      "acceptanceCriteria": [
-        "The app shows an expanded shop list with at least one new item category beyond backgrounds (cosmetic/non-functional items are acceptable).",
-        "Each item has a clear English name, a coin cost, and an owned/unowned state.",
-        "Purchasing an item deducts coins once, persists ownership for the user, and prevents repurchase charges for already-owned items.",
-        "Coin balance and any relevant ownership queries are refreshed via React Query invalidation after purchase.",
-        "If the user does not have enough coins, the purchase is blocked and an English error message is shown."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Extend the frontend backend type declarations to include reward shop item types/categories, ownership reads, and purchase capabilities for new shop items beyond backgrounds."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Add React Query hooks for listing shop items, checking/reading ownership states, and purchasing items with proper query invalidation for coin balance and ownership after purchase attempts."
+          "description": "Update the Profile Level tile and any Level-related text rendered here to use the shared rank constants and normalization helper so \"Noob 🫠\" is never displayed (fallback/default should be \"Noob\")."
         },
         {
           "path": "frontend/src/components/RewardShopSection.tsx",
-          "operation": "create",
-          "description": "Create an expanded Reward Shop UI section that includes at least one new cosmetic/non-functional item category beyond backgrounds, with English item names/costs, owned/unowned indicators, a purchase confirmation dialog, and an English insufficient-coins error state. Use shadcn-ui components (Card, Tabs, Dialog, Badge, Button). Verify the component's usage instructions before implementing."
+          "operation": "modify",
+          "description": "Update the \"Ranks\" tab content to explicitly render the 5-rank list using the shared rank constants so the list appears exactly as required and remains consistent across the app."
+        }
+      ]
+    },
+    {
+      "id": "REQ-67",
+      "summary": "Display and execute Level upgrades using backend-provided nextStage.requiredCoins (per-level increasing cost) with immediate-next-stage purchase and English error handling.",
+      "acceptanceCriteria": [
+        "Backend `getCurrentAndNextLevelStage()` (or equivalent existing Level status method) returns `nextStage.requiredCoins` that matches: Level 1 upgrades = 50; Level 2 upgrades = 100; Level 3 upgrades = 150; ...; Level 50 upgrades = 2500 (for any paid upgrade within that Level).",
+        "Backend purchase/upgrade method enforces: Level 1 - Noob is free and cannot be “purchased”; only the immediate next stage can be purchased; the coin amount deducted equals the required cost for the next stage’s Level number; and max level remains Level 50 - Sigma Student 🗿.",
+        "Frontend displays the next upgrade cost using the backend-provided value and does not hard-code 50/100; upgrading at Level 2 correctly shows 100 coins, and upgrading at Level 3 correctly shows 150 coins.",
+        "Attempting to upgrade without enough coins fails with an English user-facing error (via existing error mapping/toast behavior), and the user’s coin balance and level status remain unchanged after the failed attempt."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Add a Level status + upgrade panel that uses useGetCurrentAndNextLevelStage() and usePurchaseNextLevelStage() to show current stage, next stage, and nextStage.requiredCoins from the backend; disable the upgrade action when not allowed (e.g., max level reached or hasEnoughCoins=false), and on upgrade attempt show success/error toasts via existing behavior."
         },
         {
-          "path": "frontend/src/components/BackgroundSettings.tsx",
+          "path": "frontend/src/utils/backendErrorMessage.ts",
           "operation": "modify",
-          "description": "Wire RewardShopSection into the existing Settings experience (alongside the current background shop) so the expanded shop is discoverable without creating a new top-level route/tab."
+          "description": "Extend error-string mapping for Level upgrade purchase failures (especially insufficient coins / not allowed upgrade messages) to ensure the user always sees a clear English error via the existing toast flow."
         }
       ]
     }

@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Task } from '../backend';
-import { mapBackendError } from '../utils/backendErrorMessage';
+import { getBackendErrorMessage } from '../utils/backendErrorMessage';
 import { NoteLinker } from './NoteLinker';
 
 const PRIORITY_COLORS = {
@@ -40,33 +40,19 @@ export function TodoSection() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [subject, setSubject] = useState('');
-  const [priority, setPriority] = useState('3');
-  const [tagsInput, setTagsInput] = useState('');
+  const [priority, setPriority] = useState<string>('3');
+  const [tags, setTags] = useState('');
   const [linkedNoteId, setLinkedNoteId] = useState<bigint | null>(null);
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
   const [editSubject, setEditSubject] = useState('');
-  const [editPriority, setEditPriority] = useState('3');
-  const [editTagsInput, setEditTagsInput] = useState('');
+  const [editPriority, setEditPriority] = useState<string>('3');
+  const [editTags, setEditTags] = useState('');
   const [editLinkedNoteId, setEditLinkedNoteId] = useState<bigint | null>(null);
 
   const [deletingTask, setDeletingTask] = useState<Task | null>(null);
-  const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
-
-  // Extract all unique tags from tasks
-  const allTags = Array.from(
-    new Set(tasks.flatMap(task => task.tags))
-  ).sort();
-
-  // Parse tags from comma-separated input
-  const parseTags = (input: string): string[] => {
-    return input
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0);
-  };
 
   const handleAddTask = async () => {
     if (!title.trim()) {
@@ -74,25 +60,38 @@ export function TodoSection() {
       return;
     }
 
+    if (!subject.trim()) {
+      toast.error('Please enter a subject');
+      return;
+    }
+
     try {
-      const tags = parseTags(tagsInput);
       await addTaskMutation.mutateAsync({
         title,
         description,
-        subject: subject || 'General',
+        subject,
         priority: BigInt(priority),
-        tags,
+        tags: tags.split(',').map((t) => t.trim()).filter((t) => t),
         noteId: linkedNoteId,
       });
       setTitle('');
       setDescription('');
       setSubject('');
       setPriority('3');
-      setTagsInput('');
+      setTags('');
       setLinkedNoteId(null);
       toast.success('Task added successfully!');
     } catch (error) {
-      const errorMessage = mapBackendError(error);
+      const errorMessage = getBackendErrorMessage(error);
+      toast.error(errorMessage);
+    }
+  };
+
+  const handleToggleCompletion = async (taskId: bigint) => {
+    try {
+      await toggleCompletionMutation.mutateAsync(taskId);
+    } catch (error) {
+      const errorMessage = getBackendErrorMessage(error);
       toast.error(errorMessage);
     }
   };
@@ -103,7 +102,7 @@ export function TodoSection() {
     setEditDescription(task.description);
     setEditSubject(task.subject);
     setEditPriority(task.priority.toString());
-    setEditTagsInput(task.tags.join(', '));
+    setEditTags(task.tags.join(', '));
     setEditLinkedNoteId(task.noteId || null);
   };
 
@@ -115,30 +114,25 @@ export function TodoSection() {
       return;
     }
 
+    if (!editSubject.trim()) {
+      toast.error('Please enter a subject');
+      return;
+    }
+
     try {
-      const tags = parseTags(editTagsInput);
       await updateTaskMutation.mutateAsync({
         taskId: editingTask.id,
         title: editTitle,
         description: editDescription,
-        subject: editSubject || 'General',
+        subject: editSubject,
         priority: BigInt(editPriority),
-        tags,
+        tags: editTags.split(',').map((t) => t.trim()).filter((t) => t),
         noteId: editLinkedNoteId,
       });
       setEditingTask(null);
       toast.success('Task updated successfully!');
     } catch (error) {
-      const errorMessage = mapBackendError(error);
-      toast.error(errorMessage);
-    }
-  };
-
-  const handleToggleCompletion = async (taskId: bigint) => {
-    try {
-      await toggleCompletionMutation.mutateAsync(taskId);
-    } catch (error) {
-      const errorMessage = mapBackendError(error);
+      const errorMessage = getBackendErrorMessage(error);
       toast.error(errorMessage);
     }
   };
@@ -151,76 +145,72 @@ export function TodoSection() {
       setDeletingTask(null);
       toast.success('Task deleted successfully!');
     } catch (error) {
-      const errorMessage = mapBackendError(error);
+      const errorMessage = getBackendErrorMessage(error);
       toast.error(errorMessage);
     }
   };
 
-  // Filter tasks by selected tag
-  const filteredTasks = selectedTagFilter
-    ? tasks.filter(task => task.tags.includes(selectedTagFilter))
-    : tasks;
-
-  const pendingTasks = filteredTasks.filter(task => !task.completed);
-  const completedTasks = filteredTasks.filter(task => task.completed);
+  const pendingTasks = tasks.filter((task) => !task.completed);
+  const completedTasks = tasks.filter((task) => task.completed);
 
   const renderTask = (task: Task) => (
     <div
       key={task.id.toString()}
-      className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+      className="flex items-start gap-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors"
     >
       <button
         onClick={() => handleToggleCompletion(task.id)}
         className="mt-0.5 flex-shrink-0"
+        disabled={toggleCompletionMutation.isPending}
       >
         {task.completed ? (
-          <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-500" />
+          <CheckCircle2 className="h-5 w-5 text-primary" />
         ) : (
           <Circle className="h-5 w-5 text-muted-foreground" />
         )}
       </button>
-      <div className="flex-1 space-y-1 min-w-0">
-        <div className="flex items-start gap-2">
+      <div className="flex-1 space-y-2">
+        <div className="flex items-start justify-between gap-2">
           <h4 className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
             {task.title}
           </h4>
-          <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-2 ${PRIORITY_COLORS[Number(task.priority) as keyof typeof PRIORITY_COLORS]}`} />
+          <div className="flex gap-1 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleEditTask(task)}
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setDeletingTask(task)}
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
         </div>
         {task.description && (
-          <p className="text-sm text-muted-foreground">{task.description}</p>
+          <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-muted-foreground'}`}>
+            {task.description}
+          </p>
         )}
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="text-xs">
-            {task.subject}
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="outline">{task.subject}</Badge>
+          <Badge className={PRIORITY_COLORS[Number(task.priority) as keyof typeof PRIORITY_COLORS]}>
+            {PRIORITY_LABELS[Number(task.priority) as keyof typeof PRIORITY_LABELS]}
           </Badge>
-          {task.tags.map((tag, idx) => (
-            <Badge key={idx} variant="outline" className="text-xs">
+          {task.tags.map((tag) => (
+            <Badge key={tag} variant="secondary">
               <Tag className="mr-1 h-3 w-3" />
               {tag}
             </Badge>
           ))}
           {task.noteId && (
-            <Badge variant="outline" className="text-xs">
-              📝 Note linked
-            </Badge>
+            <Badge variant="secondary">📝 Note linked</Badge>
           )}
         </div>
-      </div>
-      <div className="flex gap-1 flex-shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => handleEditTask(task)}
-        >
-          <Edit2 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setDeletingTask(task)}
-        >
-          <Trash2 className="h-4 w-4 text-destructive" />
-        </Button>
       </div>
     </div>
   );
@@ -248,7 +238,7 @@ export function TodoSection() {
               <Label htmlFor="task-description">Description</Label>
               <Textarea
                 id="task-description"
-                placeholder="Additional details..."
+                placeholder="Add details about the task..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
@@ -257,10 +247,10 @@ export function TodoSection() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="task-subject">Subject</Label>
+                <Label htmlFor="task-subject">Subject *</Label>
                 <Input
                   id="task-subject"
-                  placeholder="e.g., Math"
+                  placeholder="e.g., Mathematics"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                 />
@@ -273,10 +263,10 @@ export function TodoSection() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">🔴 Urgent</SelectItem>
-                    <SelectItem value="2">🟠 High</SelectItem>
-                    <SelectItem value="3">🟡 Medium</SelectItem>
-                    <SelectItem value="4">🟢 Low</SelectItem>
+                    <SelectItem value="1">Urgent</SelectItem>
+                    <SelectItem value="2">High</SelectItem>
+                    <SelectItem value="3">Medium</SelectItem>
+                    <SelectItem value="4">Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -286,9 +276,9 @@ export function TodoSection() {
               <Label htmlFor="task-tags">Tags (comma-separated)</Label>
               <Input
                 id="task-tags"
-                placeholder="e.g., homework, urgent, chapter-5"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="e.g., homework, urgent"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
               />
             </div>
 
@@ -312,40 +302,15 @@ export function TodoSection() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Your Tasks</CardTitle>
-                <CardDescription>Manage your to-do list</CardDescription>
-              </div>
-              {allTags.length > 0 && (
-                <Select
-                  value={selectedTagFilter || 'all'}
-                  onValueChange={(value) => setSelectedTagFilter(value === 'all' ? null : value)}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Filter by tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Tasks</SelectItem>
-                    {allTags.map((tag) => (
-                      <SelectItem key={tag} value={tag}>
-                        <Tag className="mr-1 h-3 w-3 inline" />
-                        {tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+            <CardTitle>Your Tasks</CardTitle>
+            <CardDescription>Manage your pending and completed tasks</CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <p className="text-center text-muted-foreground">Loading tasks...</p>
-            ) : filteredTasks.length === 0 ? (
+            ) : tasks.length === 0 ? (
               <p className="text-center text-muted-foreground">
-                {selectedTagFilter
-                  ? `No tasks with tag "${selectedTagFilter}"`
-                  : 'No tasks yet. Add your first task!'}
+                No tasks yet. Add your first task to get started!
               </p>
             ) : (
               <Tabs defaultValue="pending" className="w-full">
@@ -359,8 +324,8 @@ export function TodoSection() {
                 </TabsList>
                 <TabsContent value="pending" className="space-y-3 mt-4">
                   {pendingTasks.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-4">
-                      No pending tasks
+                    <p className="text-center text-muted-foreground py-8">
+                      No pending tasks. Great job! 🎉
                     </p>
                   ) : (
                     pendingTasks.map(renderTask)
@@ -368,8 +333,8 @@ export function TodoSection() {
                 </TabsContent>
                 <TabsContent value="completed" className="space-y-3 mt-4">
                   {completedTasks.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-4">
-                      No completed tasks
+                    <p className="text-center text-muted-foreground py-8">
+                      No completed tasks yet.
                     </p>
                   ) : (
                     completedTasks.map(renderTask)
@@ -395,6 +360,7 @@ export function TodoSection() {
                 id="edit-title"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="e.g., Complete math homework"
               />
             </div>
             <div className="space-y-2">
@@ -403,16 +369,18 @@ export function TodoSection() {
                 id="edit-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Add details about the task..."
                 rows={3}
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="edit-subject">Subject</Label>
+                <Label htmlFor="edit-subject">Subject *</Label>
                 <Input
                   id="edit-subject"
                   value={editSubject}
                   onChange={(e) => setEditSubject(e.target.value)}
+                  placeholder="e.g., Mathematics"
                 />
               </div>
               <div className="space-y-2">
@@ -422,10 +390,10 @@ export function TodoSection() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">🔴 Urgent</SelectItem>
-                    <SelectItem value="2">🟠 High</SelectItem>
-                    <SelectItem value="3">🟡 Medium</SelectItem>
-                    <SelectItem value="4">🟢 Low</SelectItem>
+                    <SelectItem value="1">Urgent</SelectItem>
+                    <SelectItem value="2">High</SelectItem>
+                    <SelectItem value="3">Medium</SelectItem>
+                    <SelectItem value="4">Low</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -434,9 +402,9 @@ export function TodoSection() {
               <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
               <Input
                 id="edit-tags"
-                placeholder="e.g., homework, urgent, chapter-5"
-                value={editTagsInput}
-                onChange={(e) => setEditTagsInput(e.target.value)}
+                value={editTags}
+                onChange={(e) => setEditTags(e.target.value)}
+                placeholder="e.g., homework, urgent"
               />
             </div>
             <NoteLinker

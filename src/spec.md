@@ -1,18 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Add study analytics (monthly summary, heatmap), a configurable daily study goal, task tagging, embedded notes for tasks/reminders, and an expanded coin reward shop with permanent ownership.
+**Goal:** Standardize Level rank labels across the app and update Level upgrade costs to scale by Level number (Level * 50), while keeping existing users’ saved Level data working.
 
 **Planned changes:**
-- Backend: add a monthly study summary endpoint (total minutes + best 7-day week within the month) computed from existing study sessions across Pomodoro, Custom timer, and Stopwatch.
-- Frontend: add an authenticated Monthly Study Summary view with month selector, plus loading/empty states and React Query fetching/refresh.
-- Backend: add a per-day aggregated study minutes endpoint for a recent window (at minimum last 90 days), suitable for a continuous heatmap.
-- Frontend: add a GitHub-style study heatmap view with intensity legend and day tooltip/popover, loaded via React Query with loading state.
-- Backend: persist a per-user daily study goal (minutes) in the user profile and expose get/update methods with basic validation and sensible defaults.
-- Frontend: add a daily goal progress UI (today’s minutes vs goal) and a control to set/update the daily goal, with React Query invalidation after updates/sessions.
-- Backend: extend tasks to support 0..N text tags; support setting/updating tags and returning tags in task reads, preserving existing task data via conditional migration if needed.
-- Frontend: add task tag add/remove in task create/edit and a simple To-Do filter by selected tag (including an “All” view), persisting via backend + React Query refresh.
-- Backend + Frontend: support linking/unlinking existing notes to tasks and reminders, and creating a new note from within task/reminder edit flows; persist associations and handle missing/deleted notes gracefully.
-- Backend + Frontend: expand the coin reward shop with at least one new purchasable item category beyond backgrounds, including coin cost, owned/unowned state, purchase confirmation, purchase blocking on insufficient coins, and per-user permanent ownership to prevent double-charging.
+- Update all rank label displays to use exactly this 5-rank list everywhere: "Noob", "Beginner 📈", "Advanced Student 💪🏻", "Pro Student 🔥", "Sigma Student 🗿" (remove the 🫠 emoji from "Noob" and ensure consistent casing/spelling across UI and backend-derived display text).
+- Revise Level upgrade coin-cost rules end-to-end so paid upgrades within a Level cost `level * 50` (Level 1 = 50, Level 2 = 100, …, Level 50 = 2500), while keeping Level 1 - Noob free (0 coins) and enforcing immediate-next-stage-only upgrades.
+- Add backward-compatible handling for legacy persisted rank values (e.g., "Noob 🫠") so Level status fetching and upgrade/purchase flow continue to work for existing users without errors or inconsistent labels.
 
-**User-visible outcome:** Users can view a monthly study summary and a recent study heatmap, set a daily study goal and track progress, tag tasks and filter by tag, attach notes to tasks and reminders (including creating notes inline), and buy additional shop items with coins with ownership saved so items aren’t recharged when reused.
+**User-visible outcome:** Ranks display consistently as the specified 5 labels (with "Noob" shown without 🫠), and upgrade costs correctly increase by Level (50, 100, 150, …) with existing users’ Level progress continuing to function normally.

@@ -38,6 +38,7 @@ export const Note = IDL.Record({
 });
 export const Task = IDL.Record({
   'id' : IDL.Nat,
+  'completedAt' : IDL.Opt(Time),
   'title' : IDL.Text,
   'subject' : IDL.Text,
   'noteId' : IDL.Opt(IDL.Nat),
@@ -76,6 +77,11 @@ export const PersistentStopwatch = IDL.Record({
   'startTime' : Time,
   'accumulatedTime' : IDL.Nat,
   'isRunning' : IDL.Bool,
+});
+export const StreakMilestoneRewards = IDL.Record({
+  'has10DayReward' : IDL.Bool,
+  'has30DayReward' : IDL.Bool,
+  'hasScholarGoldBadge' : IDL.Bool,
 });
 export const TimerSessionV2 = IDL.Record({
   'endTime' : IDL.Int,
@@ -176,6 +182,7 @@ export const idlService = IDL.Service({
   'deleteTimetableEntry' : IDL.Func([IDL.Nat], [], []),
   'getAllNotes' : IDL.Func([], [IDL.Vec(Note)], ['query']),
   'getAllTasks' : IDL.Func([], [IDL.Vec(Task)], ['query']),
+  'getAvailableStreakFreezes' : IDL.Func([], [IDL.Nat], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCoinBalance' : IDL.Func([], [IDL.Nat], ['query']),
@@ -196,6 +203,11 @@ export const idlService = IDL.Service({
   'getPersistentStopwatchState' : IDL.Func(
       [],
       [IDL.Opt(PersistentStopwatch)],
+      ['query'],
+    ),
+  'getStreakMilestoneRewards' : IDL.Func(
+      [],
+      [StreakMilestoneRewards],
       ['query'],
     ),
   'getStudyStreak' : IDL.Func([], [IDL.Nat], ['query']),
@@ -220,6 +232,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getWeeklyStudySessions' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
+  'hasActiveStudyStreak' : IDL.Func([], [IDL.Bool], []),
   'initializeProfile' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'isBackgroundOwned' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
@@ -227,6 +240,7 @@ export const idlService = IDL.Service({
   'pausePersistentStopwatch' : IDL.Func([], [], ['oneway']),
   'purchaseCustomBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'purchaseNextLevelStage' : IDL.Func([], [LevelStatus], []),
+  'purchaseStreakFreeze' : IDL.Func([], [], []),
   'recordTimerSession' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Nat], []),
   'removeNoteImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
   'removeVoiceNote' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
@@ -276,6 +290,7 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'useStreakFreeze' : IDL.Func([], [IDL.Bool], []),
 });
 
 export const idlInitArgs = [];
@@ -311,6 +326,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const Task = IDL.Record({
     'id' : IDL.Nat,
+    'completedAt' : IDL.Opt(Time),
     'title' : IDL.Text,
     'subject' : IDL.Text,
     'noteId' : IDL.Opt(IDL.Nat),
@@ -349,6 +365,11 @@ export const idlFactory = ({ IDL }) => {
     'startTime' : Time,
     'accumulatedTime' : IDL.Nat,
     'isRunning' : IDL.Bool,
+  });
+  const StreakMilestoneRewards = IDL.Record({
+    'has10DayReward' : IDL.Bool,
+    'has30DayReward' : IDL.Bool,
+    'hasScholarGoldBadge' : IDL.Bool,
   });
   const TimerSessionV2 = IDL.Record({
     'endTime' : IDL.Int,
@@ -449,6 +470,7 @@ export const idlFactory = ({ IDL }) => {
     'deleteTimetableEntry' : IDL.Func([IDL.Nat], [], []),
     'getAllNotes' : IDL.Func([], [IDL.Vec(Note)], ['query']),
     'getAllTasks' : IDL.Func([], [IDL.Vec(Task)], ['query']),
+    'getAvailableStreakFreezes' : IDL.Func([], [IDL.Nat], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCoinBalance' : IDL.Func([], [IDL.Nat], ['query']),
@@ -469,6 +491,11 @@ export const idlFactory = ({ IDL }) => {
     'getPersistentStopwatchState' : IDL.Func(
         [],
         [IDL.Opt(PersistentStopwatch)],
+        ['query'],
+      ),
+    'getStreakMilestoneRewards' : IDL.Func(
+        [],
+        [StreakMilestoneRewards],
         ['query'],
       ),
     'getStudyStreak' : IDL.Func([], [IDL.Nat], ['query']),
@@ -497,6 +524,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getWeeklyStudySessions' : IDL.Func([], [IDL.Vec(StudySession)], ['query']),
+    'hasActiveStudyStreak' : IDL.Func([], [IDL.Bool], []),
     'initializeProfile' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'isBackgroundOwned' : IDL.Func([IDL.Text], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
@@ -504,6 +532,7 @@ export const idlFactory = ({ IDL }) => {
     'pausePersistentStopwatch' : IDL.Func([], [], ['oneway']),
     'purchaseCustomBackground' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'purchaseNextLevelStage' : IDL.Func([], [LevelStatus], []),
+    'purchaseStreakFreeze' : IDL.Func([], [], []),
     'recordTimerSession' : IDL.Func([IDL.Nat, IDL.Bool], [IDL.Nat], []),
     'removeNoteImage' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
     'removeVoiceNote' : IDL.Func([IDL.Nat, ExternalBlob], [], []),
@@ -553,6 +582,7 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'useStreakFreeze' : IDL.Func([], [IDL.Bool], []),
   });
 };
 

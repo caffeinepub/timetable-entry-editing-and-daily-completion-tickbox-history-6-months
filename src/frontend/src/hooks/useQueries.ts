@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Task, TimetableEntry, Note, Reminder, ExternalBlob, TimerSessionV2, UserProfile, TimetableTick, LevelStatus, StudySession } from '../backend';
+import type { Task, TimetableEntry, Note, Reminder, ExternalBlob, TimerSessionV2, UserProfile, TimetableTick, LevelStatus, StudySession, StreakMilestoneRewards } from '../backend';
 
 // Profile Management
 export function useGetCallerUserProfile() {
@@ -574,7 +574,7 @@ export function useRecordTimerSession() {
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
       queryClient.invalidateQueries({ queryKey: ['weeklyStudySessions'] });
       queryClient.invalidateQueries({ queryKey: ['dailyGoal'] });
-      queryClient.invalidateQueries({ queryKey: ['heatmapData'] });
+      queryClient.invalidateQueries({ queryKey: ['streakMilestoneRewards'] });
     },
   });
 }
@@ -588,6 +588,51 @@ export function useGetStudyStreak() {
     queryFn: async () => {
       if (!actor) return BigInt(0);
       return actor.getStudyStreak();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+// Streak Freeze Economy
+export function useGetAvailableStreakFreezes() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<bigint>({
+    queryKey: ['availableStreakFreezes'],
+    queryFn: async () => {
+      if (!actor) return BigInt(0);
+      return actor.getAvailableStreakFreezes();
+    },
+    enabled: !!actor && !isFetching,
+  });
+}
+
+export function usePurchaseStreakFreeze() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not initialized');
+      return actor.purchaseStreakFreeze();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['availableStreakFreezes'] });
+      queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    },
+  });
+}
+
+// Streak Milestone Rewards
+export function useGetStreakMilestoneRewards() {
+  const { actor, isFetching } = useActor();
+
+  return useQuery<StreakMilestoneRewards>({
+    queryKey: ['streakMilestoneRewards'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.getStreakMilestoneRewards();
     },
     enabled: !!actor && !isFetching,
   });
@@ -721,14 +766,13 @@ export function useCompleteStopwatchSession() {
       return actor.completeStopwatchSession(elapsedMinutes);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stopwatchState'] });
       queryClient.invalidateQueries({ queryKey: ['coinBalance'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['studyStreak'] });
       queryClient.invalidateQueries({ queryKey: ['levelStatus'] });
       queryClient.invalidateQueries({ queryKey: ['weeklyStudySessions'] });
       queryClient.invalidateQueries({ queryKey: ['dailyGoal'] });
-      queryClient.invalidateQueries({ queryKey: ['heatmapData'] });
+      queryClient.invalidateQueries({ queryKey: ['streakMilestoneRewards'] });
     },
   });
 }

@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import type { Reminder } from '../backend';
-import { mapBackendError } from '../utils/backendErrorMessage';
+import { getBackendErrorMessage } from '../utils/backendErrorMessage';
 import { NoteLinker } from './NoteLinker';
 
 export function RemindersSection() {
@@ -64,7 +64,7 @@ export function RemindersSection() {
       setLinkedNoteId(null);
       toast.success('Reminder set successfully!');
     } catch (error) {
-      const errorMessage = mapBackendError(error);
+      const errorMessage = getBackendErrorMessage(error);
       toast.error(errorMessage);
     }
   };
@@ -113,7 +113,7 @@ export function RemindersSection() {
       setEditingReminder(null);
       toast.success('Reminder updated successfully!');
     } catch (error) {
-      const errorMessage = mapBackendError(error);
+      const errorMessage = getBackendErrorMessage(error);
       toast.error(errorMessage);
     }
   };
@@ -126,7 +126,7 @@ export function RemindersSection() {
       setDeletingReminder(null);
       toast.success('Reminder deleted successfully!');
     } catch (error) {
-      const errorMessage = mapBackendError(error);
+      const errorMessage = getBackendErrorMessage(error);
       toast.error(errorMessage);
     }
   };

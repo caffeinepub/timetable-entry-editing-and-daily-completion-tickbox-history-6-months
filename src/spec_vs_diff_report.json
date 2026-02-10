@@ -1,136 +1,59 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T06:23:29.944Z",
-  "summary": "Diff adds new frontend views for monthly summary, 90-day heatmap, and daily goal progress; adds task tags and single-note linking UI for tasks/reminders; introduces a migration and extends backend types for tags, noteId, and dailyStudyGoal. However, several requirements call for new backend methods and persistent per-user data (monthly summary, heatmap aggregates, daily goal get/update, multi-note associations, and expanded shop ownership/purchases) that are not evidenced in the diff and in some cases are implemented only client-side or only with local state.",
+  "generatedAt": "2026-02-10T09:12:26.035Z",
+  "summary": "Rank labels were updated to the new 5-rank list in both backend (levelRanks array) and frontend (new LEVEL_RANKS utility + normalizeRank usage). A backend migration was introduced, but it appears to drop users with legacy/invalid rank strings rather than normalize them. The diff summary does not provide evidence that the per-level upgrade cost rule (level * 50) was implemented/enforced end-to-end in backend level-status and purchase logic.",
   "missing_requirements": [
     {
-      "id": "REQ-34",
-      "requirement": "Backend support for a Monthly Study Summary (month total minutes + best 7-day week within month) via a new backend method that does not trap on empty months.",
-      "reason": "The frontend MonthlyStudySummaryView computes monthly totals and best week by filtering sessions from useGetWeeklyStudySessions (client-side). The diff summary shows no new backend method for monthly summaries.",
+      "id": "REQ-67",
+      "requirement": "Revise Level upgrade coin-cost rules so paid upgrades within a given Level cost level*50 (Level 1=50, Level 2=100 ... Level 50=2500), keep Level 1 Noob free, enforce only immediate-next-stage purchase, and ensure frontend shows backend-provided requiredCoins.",
+      "reason": "The diff summary shows rank list changes and a migration hook, but does not show any changes to backend level-stage cost computation, `getCurrentAndNextLevelStage()` (or equivalent) returning the new `nextStage.requiredCoins`, or purchase/upgrade enforcement to deduct the new per-level cost and prevent skipping.",
       "evidence": [
-        "frontend/src/components/MonthlyStudySummaryView.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo (truncated)"
+        "backend/main.mo (truncated; only shows levelRanks array and migration hook, no cost logic shown)"
       ]
     },
     {
-      "id": "REQ-35",
-      "requirement": "Monthly Study Summary UI must fetch data via React Query from the backend monthly-summary method and remain consistent via query invalidation after new sessions are recorded.",
-      "reason": "UI uses useGetWeeklyStudySessions and derives month stats locally, rather than fetching a dedicated backend monthly summary for a selected month/year; no query keys/invalidation for a monthly summary are evidenced.",
+      "id": "REQ-68",
+      "requirement": "Normalize/handle legacy stored rank values (e.g., \"Noob 🫠\") so existing users continue to work and see \"Noob\" without traps or getting stuck.",
+      "reason": "The added migration filters out any stage whose rank is not exactly one of the valid ranks; it does not map \"Noob 🫠\" to \"Noob\". This risks deleting/clearing affected users' stored level stage rather than normalizing it as required by the acceptance criteria.",
       "evidence": [
-        "frontend/src/components/MonthlyStudySummaryView.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "id": "REQ-36",
-      "requirement": "Backend method to fetch per-day aggregated study minutes for at least the last 90 days (with unambiguous day keys and support for continuous range rendering).",
-      "reason": "Heatmap UI computes per-day minutes by repeatedly filtering weekly sessions on the client; no backend per-day aggregation method is shown in the diff summary.",
-      "evidence": [
-        "frontend/src/components/StudyHeatmapView.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-37",
-      "requirement": "Heatmap UI should load heatmap data via React Query and include an English legend explaining intensity meaning.",
-      "reason": "StudyHeatmapView uses useGetWeeklyStudySessions (not a heatmap-specific React Query fetch) and the provided snippet shows no legend component/text explaining intensity levels.",
-      "evidence": [
-        "frontend/src/components/StudyHeatmapView.tsx"
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "requirement": "Backend methods to get/update a per-user daily study goal with validation and sensible default (e.g., 0 meaning no goal set), without trapping for existing users.",
-      "reason": "Types and migration add dailyStudyGoal, but the diff summary does not show backend get/update methods or validation logic. Migration sets dailyStudyGoal=60 (not 0/no-goal) for existing users.",
-      "evidence": [
-        "backend/main.mo (truncated)",
-        "backend/migration.mo",
-        "frontend/src/hooks/useQueries.ts (references dailyGoal invalidation but no shown hook definitions)"
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "requirement": "Daily goal progress should use today’s studied minutes across all modes and refresh after recording sessions via query invalidation patterns; if no goal set, prompt to set goal.",
-      "reason": "DailyGoalProgressCard computes todayMinutes from useGetWeeklyStudySessions only (may not cover all modes and relies on weekly window) and the diff summary does not show session-recording invalidation tied to goal progress/today totals.",
-      "evidence": [
-        "frontend/src/components/DailyGoalProgressCard.tsx",
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "id": "REQ-40",
-      "requirement": "Backend methods to create/update task tags and list tasks with tags; allow updating tags without affecting unrelated fields; preserve existing tasks via conditional migration.",
-      "reason": "Backend Task type includes tags and migration initializes tags=[], but the diff summary does not show backend methods specifically supporting tag updates independent of other fields, nor any explicit API changes beyond type additions.",
-      "evidence": [
-        "backend/main.mo (truncated)",
-        "backend/migration.mo"
-      ]
-    },
-    {
-      "id": "REQ-42",
-      "requirement": "Tasks can be associated with zero or more notes, including linking/unlinking existing notes and creating a new note within task edit flow; handle deleted-note fallback.",
-      "reason": "Backend and migration use a single noteId (?Nat) on Task, not zero-or-more notes. Frontend NoteLinker and TodoSection appear designed for one linked note (linkedNoteId singular). No evidence of deleted-note fallback behavior in task rendering.",
-      "evidence": [
-        "backend/main.mo (truncated: Task has noteId : ?Nat)",
-        "backend/migration.mo (NewTask noteId : ?Nat)",
-        "frontend/src/components/NoteLinker.tsx",
-        "frontend/src/components/TodoSection.tsx"
-      ]
-    },
-    {
-      "id": "REQ-43",
-      "requirement": "Reminders can be associated with zero or more notes, including link/unlink existing notes and create-and-attach within reminder edit flow; reminder notification behavior unchanged.",
-      "reason": "Backend and migration use a single noteId (?Nat) on Reminder, not zero-or-more notes. UI state also uses a single linkedNoteId/editLinkedNoteId. No evidence regarding notification behavior guarantees.",
-      "evidence": [
-        "backend/main.mo (truncated: Reminder has noteId : ?Nat)",
-        "backend/migration.mo (NewReminder noteId : ?Nat)",
-        "frontend/src/components/RemindersSection.tsx",
-        "frontend/src/components/NoteLinker.tsx"
-      ]
-    },
-    {
-      "id": "REQ-44",
-      "requirement": "Expanded reward shop with at least one new item category beyond backgrounds, with backend-persisted ownership, coin deduction once, repurchase prevention, React Query invalidation, and insufficient-coin blocking with English error.",
-      "reason": "RewardShopSection uses local React state (ownedItems Set) and explicitly comments that purchase is simulated and would call backend in a real app. No backend purchase/ownership persistence for new item categories is evidenced; no React Query invalidation after purchase is shown.",
-      "evidence": [
-        "frontend/src/components/RewardShopSection.tsx",
-        "frontend/src/hooks/useQueries.ts",
-        "backend/main.mo (truncated)"
+        "backend/migration.mo (cleanInvalidRanks filters invalid ranks; no mapping from \"Noob 🫠\" to \"Noob\")"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Daily study goal default set to 60 minutes for all existing users during migration.",
-      "reason": "BuildRequest suggests a sensible default such as 0 meaning “no goal set”; setting 60 by default changes existing users’ state/UX without being requested.",
+      "description": "Backend state migration that clears/removes all invalid/old rank values rather than purely backward-compatible normalization.",
+      "reason": "BuildRequest allows introducing `backend/migration.mo` only if strictly required and prefers backward-compatible normalization. The diff introduces a migration and explicitly states it will clear invalid/old rank values; this goes beyond (and potentially contradicts) the requested legacy normalization behavior.",
       "evidence": [
-        "backend/migration.mo (dailyStudyGoal = 60)"
+        "backend/main.mo (\"Use migration on upgrade to clear all invalid/old rank values from persistent state.\")",
+        "backend/migration.mo (cleanInvalidRanks filters out ranks not in valid list)"
       ]
     },
     {
-      "description": "Reward shop implements a client-side simulated purchase/ownership system (ownedItems in local state) without backend integration.",
-      "reason": "The requirement calls for backend-persisted ownership and coin deduction; the added simulated purchase behavior is not requested and may conflict with the intended persistent design.",
+      "description": "Reward shop component imports LEVEL_RANKS (rank list) despite no requested changes to the reward shop.",
+      "reason": "REQ-66 is about rank labels wherever displayed; however, the diff shows `RewardShopSection` now imports `LEVEL_RANKS` with no clear evidence in the provided snippet that it is used for a Level/Ranks UI display. This appears to be an unrelated change in the context of this BuildRequest.",
       "evidence": [
-        "frontend/src/components/RewardShopSection.tsx (\"Simulate purchase (in real app, this would call backend)\")"
+        "frontend/src/components/RewardShopSection.tsx (imports LEVEL_RANKS)"
+      ]
+    },
+    {
+      "description": "Expanded/modified backend error-message mappings unrelated to Level rank labels or per-level upgrade pricing.",
+      "reason": "The BuildRequest focuses on rank labels and level upgrade pricing; the diff modifies `getBackendErrorMessage` with multiple mappings (e.g., stopwatch, streak freeze) that are not part of REQ-66/67/68.",
+      "evidence": [
+        "frontend/src/utils/backendErrorMessage.ts"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.63,
   "changed_files": [
     "backend/main.mo",
     "backend/migration.mo",
-    "frontend/src/components/DailyGoalProgressCard.tsx",
-    "frontend/src/components/MonthlyStudySummaryView.tsx",
-    "frontend/src/components/NoteLinker.tsx",
+    "frontend-file-summaries.txt",
     "frontend/src/components/ProfileSection.tsx",
-    "frontend/src/components/RemindersSection.tsx",
     "frontend/src/components/RewardShopSection.tsx",
-    "frontend/src/components/StudyHeatmapView.tsx",
-    "frontend/src/components/TodoSection.tsx",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/utils/backendErrorMessage.ts",
+    "frontend/src/utils/levelRanks.ts",
     "project_state.json"
   ]
 }

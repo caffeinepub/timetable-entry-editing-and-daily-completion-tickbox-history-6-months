@@ -49,6 +49,11 @@ export interface Reminder {
   'createdAt' : Time,
   'reminderTime' : bigint,
 }
+export interface StreakMilestoneRewards {
+  'has10DayReward' : boolean,
+  'has30DayReward' : boolean,
+  'hasScholarGoldBadge' : boolean,
+}
 export interface StudySession {
   'sessionType' : string,
   'createdAt' : Time,
@@ -57,6 +62,7 @@ export interface StudySession {
 }
 export interface Task {
   'id' : bigint,
+  'completedAt' : [] | [Time],
   'title' : string,
   'subject' : string,
   'noteId' : [] | [bigint],
@@ -148,6 +154,7 @@ export interface _SERVICE {
   'deleteTimetableEntry' : ActorMethod<[bigint], undefined>,
   'getAllNotes' : ActorMethod<[], Array<Note>>,
   'getAllTasks' : ActorMethod<[], Array<Task>>,
+  'getAvailableStreakFreezes' : ActorMethod<[], bigint>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCoinBalance' : ActorMethod<[], bigint>,
@@ -158,6 +165,7 @@ export interface _SERVICE {
   'getNewUserNeedsOnboarding' : ActorMethod<[], boolean>,
   'getPersistentStopwatchElapsedTime' : ActorMethod<[], bigint>,
   'getPersistentStopwatchState' : ActorMethod<[], [] | [PersistentStopwatch]>,
+  'getStreakMilestoneRewards' : ActorMethod<[], StreakMilestoneRewards>,
   'getStudyStreak' : ActorMethod<[], bigint>,
   'getTasksByTag' : ActorMethod<[string], Array<Task>>,
   'getTimerSessions' : ActorMethod<[], Array<TimerSessionV2>>,
@@ -174,6 +182,7 @@ export interface _SERVICE {
   'getUpcomingReminders' : ActorMethod<[bigint], Array<Reminder>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getWeeklyStudySessions' : ActorMethod<[], Array<StudySession>>,
+  'hasActiveStudyStreak' : ActorMethod<[], boolean>,
   'initializeProfile' : ActorMethod<[string, string], undefined>,
   'isBackgroundOwned' : ActorMethod<[string], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
@@ -181,6 +190,7 @@ export interface _SERVICE {
   'pausePersistentStopwatch' : ActorMethod<[], undefined>,
   'purchaseCustomBackground' : ActorMethod<[string], boolean>,
   'purchaseNextLevelStage' : ActorMethod<[], LevelStatus>,
+  'purchaseStreakFreeze' : ActorMethod<[], undefined>,
   'recordTimerSession' : ActorMethod<[bigint, boolean], bigint>,
   'removeNoteImage' : ActorMethod<[bigint, ExternalBlob], undefined>,
   'removeVoiceNote' : ActorMethod<[bigint, ExternalBlob], undefined>,
@@ -212,6 +222,7 @@ export interface _SERVICE {
     [bigint, string, string, string],
     undefined
   >,
+  'useStreakFreeze' : ActorMethod<[], boolean>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

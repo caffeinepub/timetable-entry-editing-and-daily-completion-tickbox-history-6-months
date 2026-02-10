@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 
-export type NotificationType = 'timer' | 'reminder';
+export type NotificationType = 'timer' | 'reminder' | 'syllabus';
 
 export interface NotificationOptions {
   title: string;
@@ -21,6 +21,11 @@ export class NotificationManager {
     } else if (type === 'reminder') {
       toast.info(title, {
         description: description || 'Reminder notification',
+        duration,
+      });
+    } else if (type === 'syllabus') {
+      toast.warning(title, {
+        description: description || 'Syllabus reminder',
         duration,
       });
     }
@@ -45,8 +50,13 @@ export class NotificationManager {
 
   static async requestNotificationPermission(): Promise<NotificationPermission> {
     if ('Notification' in window) {
-      return Notification.requestPermission();
+      const permission = await Notification.requestPermission();
+      if (permission === 'denied') {
+        toast.info('Browser notifications are disabled. You will see in-app notifications instead.');
+      }
+      return permission;
     }
+    toast.info('Browser notifications are not supported. You will see in-app notifications instead.');
     return Promise.resolve('denied' as NotificationPermission);
   }
 
@@ -64,7 +74,12 @@ export class NotificationManager {
   static showBrowserNotification(title: string, body?: string) {
     if (!this.isNotificationSupported()) {
       // Fallback to toast
-      this.showReminder(title, body);
+      this.show({
+        title,
+        description: body,
+        type: 'syllabus',
+        duration: 10000,
+      });
       return;
     }
 
@@ -78,11 +93,47 @@ export class NotificationManager {
         });
       } catch (error) {
         // Fallback to toast if browser notification fails
-        this.showReminder(title, body);
+        this.show({
+          title,
+          description: body,
+          type: 'syllabus',
+          duration: 10000,
+        });
       }
+    } else if (permission === 'default') {
+      // Request permission and show toast as fallback
+      this.requestNotificationPermission().then((newPermission) => {
+        if (newPermission === 'granted') {
+          try {
+            new Notification(title, {
+              body: body || '',
+              icon: '/assets/generated/scholar-gold-app-icon-v2.dim_192x192.png',
+            });
+          } catch (error) {
+            this.show({
+              title,
+              description: body,
+              type: 'syllabus',
+              duration: 10000,
+            });
+          }
+        } else {
+          this.show({
+            title,
+            description: body,
+            type: 'syllabus',
+            duration: 10000,
+          });
+        }
+      });
     } else {
-      // Fallback to toast if permission not granted
-      this.showReminder(title, body);
+      // Fallback to toast if permission denied
+      this.show({
+        title,
+        description: body,
+        type: 'syllabus',
+        duration: 10000,
+      });
     }
   }
 }

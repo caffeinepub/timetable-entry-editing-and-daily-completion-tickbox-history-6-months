@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Coins, ShoppingBag, Check, Lock } from 'lucide-react';
-import { useGetCoinBalance } from '../hooks/useQueries';
+import { Coins, ShoppingBag, Check, Lock, Award } from 'lucide-react';
+import { useGetCoinBalance, useGetStreakMilestoneRewards } from '../hooks/useQueries';
 import { toast } from 'sonner';
+import { LEVEL_RANKS } from '../utils/levelRanks';
 
 interface ShopItem {
   id: string;
@@ -99,6 +100,7 @@ const SHOP_ITEMS: ShopItem[] = [
 
 export function RewardShopSection() {
   const { data: coinBalance } = useGetCoinBalance();
+  const { data: milestoneRewards } = useGetStreakMilestoneRewards();
   const [ownedItems, setOwnedItems] = useState<Set<string>>(new Set());
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
@@ -178,15 +180,9 @@ export function RewardShopSection() {
                         Owned
                       </>
                     ) : !canAfford ? (
-                      <>
-                        <Lock className="mr-2 h-4 w-4" />
-                        Locked
-                      </>
+                      'Not Enough Coins'
                     ) : (
-                      <>
-                        <ShoppingBag className="mr-2 h-4 w-4" />
-                        Buy
-                      </>
+                      'Purchase'
                     )}
                   </Button>
                 </div>
@@ -198,8 +194,10 @@ export function RewardShopSection() {
     );
   };
 
+  const scholarGoldUnlocked = milestoneRewards?.hasScholarGoldBadge ?? false;
+
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -207,27 +205,100 @@ export function RewardShopSection() {
               <ShoppingBag className="h-5 w-5 text-primary" />
               <CardTitle>Reward Shop</CardTitle>
             </div>
-            <Badge variant="secondary" className="text-base">
-              <Coins className="mr-1 h-4 w-4 text-yellow-600 dark:text-yellow-500" />
-              {currentCoins} coins
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Coins className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+              <span className="text-lg font-bold">{currentCoins}</span>
+            </div>
           </div>
-          <CardDescription>Spend your coins on cosmetic items and customizations</CardDescription>
+          <CardDescription>Spend your coins on exclusive rewards and customizations</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="avatar" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs defaultValue="ranks" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="ranks">Ranks</TabsTrigger>
               <TabsTrigger value="avatar">Avatar Frames</TabsTrigger>
-              <TabsTrigger value="badge">Profile Badges</TabsTrigger>
-              <TabsTrigger value="theme">Theme Colors</TabsTrigger>
+              <TabsTrigger value="badges">Badges</TabsTrigger>
+              <TabsTrigger value="themes">Themes</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="ranks" className="space-y-4 mt-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Award className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Level Ranks</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Progress through these ranks by upgrading your level in the Profile section.
+                </p>
+                <div className="space-y-3">
+                  {LEVEL_RANKS.map((rank, index) => (
+                    <Card key={rank}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary font-bold">
+                              {index + 1}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-lg">{rank}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {index === 0 && 'Starting rank'}
+                                {index === 1 && 'First upgrade'}
+                                {index === 2 && 'Intermediate level'}
+                                {index === 3 && 'Advanced level'}
+                                {index === 4 && 'Maximum rank'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <Card className="mt-6 border-2 border-primary/50">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Award className="h-6 w-6 text-yellow-600 dark:text-yellow-500" />
+                        <CardTitle>Scholar Gold Badge</CardTitle>
+                      </div>
+                      {scholarGoldUnlocked ? (
+                        <Badge variant="default" className="bg-green-600">
+                          <Check className="h-3 w-3 mr-1" />
+                          Unlocked
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">
+                          <Lock className="h-3 w-3 mr-1" />
+                          Locked
+                        </Badge>
+                      )}
+                    </div>
+                    <CardDescription>
+                      {scholarGoldUnlocked
+                        ? 'Congratulations! You earned the Scholar Gold Badge!'
+                        : 'Reach a 30-day study streak to unlock this exclusive badge'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-center p-8 bg-gradient-to-br from-yellow-100 to-yellow-200 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
+                      <div className="text-6xl">🏆</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
             <TabsContent value="avatar" className="mt-6">
               {renderItems('avatar')}
             </TabsContent>
-            <TabsContent value="badge" className="mt-6">
+
+            <TabsContent value="badges" className="mt-6">
               {renderItems('badge')}
             </TabsContent>
-            <TabsContent value="theme" className="mt-6">
+
+            <TabsContent value="themes" className="mt-6">
               {renderItems('theme')}
             </TabsContent>
           </Tabs>
@@ -244,22 +315,27 @@ export function RewardShopSection() {
             </DialogDescription>
           </DialogHeader>
           {selectedItem && (
-            <div className="py-4">
-              <div className="flex items-center gap-3 rounded-lg border p-4">
+            <div className="space-y-4 py-4">
+              <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
                 <span className="text-4xl">{selectedItem.icon}</span>
                 <div className="flex-1">
-                  <h4 className="font-semibold">{selectedItem.name}</h4>
+                  <p className="font-semibold">{selectedItem.name}</p>
                   <p className="text-sm text-muted-foreground">{selectedItem.description}</p>
-                  <div className="flex items-center gap-1 mt-2">
-                    <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
-                    <span className="font-bold">{selectedItem.price} coins</span>
-                  </div>
                 </div>
               </div>
-              <div className="mt-4 rounded-lg bg-muted/50 p-3 text-sm">
-                <p className="text-muted-foreground">
-                  After purchase: <span className="font-medium">{currentCoins - selectedItem.price} coins remaining</span>
-                </p>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <span className="font-medium">Price:</span>
+                <div className="flex items-center gap-1 font-bold text-lg">
+                  <Coins className="h-5 w-5 text-yellow-600 dark:text-yellow-500" />
+                  <span>{selectedItem.price}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Your balance after purchase:</span>
+                <div className="flex items-center gap-1 font-semibold">
+                  <Coins className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+                  <span>{currentCoins - selectedItem.price}</span>
+                </div>
               </div>
             </div>
           )}
@@ -273,6 +349,6 @@ export function RewardShopSection() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

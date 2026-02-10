@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
-  "summary": "Scope expanded to include additional productivity/analytics features on top of existing timetable, streak, coin/levels, reminders, and tasks work: add a monthly study summary view, task categories/tags, a daily study goal progress bar, a study-day heatmap calendar, notes inside tasks/reminders, and an expanded coin reward shop.",
+  "projectStateVersion": 35,
+  "summary": "Scope expanded to add a purchasable “Streak Freeze” item (50 coins) that prevents streak reset on a missed day, plus new calendar/heatmap-style visualizations (streak calendar marking freeze-used days and a GitHub-style activity heatmap for task completion), new milestone rewards (30-day streak grants 500 coins + a “Scholar Gold” badge reflected in the Ranks section), and an 8:00 PM reminder notification if no subjects were checked off that day.",
   "architectural_notes": [
     "Do not rename the app (explicit requirement).",
     "Timetable completion tracking requires backend schema changes and may require a migration (main.mo/migration.mo loop risk).",
@@ -9,14 +9,19 @@
     "Rename request conflicts with existing requirement: do not rename the app (must be resolved before proceeding).",
     "Level system requires persistent user progression data (current level/rank) and coin-spend transaction logic enforcing sequential unlocks.",
     "Level progression must keep the same Level number across its 5 ranks (only increment Level after completing all 5 ranks).",
-    "Confirm/update Level upgrade pricing rule: user requests 50-coin cost to continue for subsequent upgrades (not 100)."
+    "Confirm/update Level upgrade pricing rule: user requests 50-coin cost to continue for subsequent upgrades (not 100).",
+    "User chose frontend-only (local state) storage for Syllabus create/edit/delete (no backend persistence for now).",
+    "Syllabus editing UI should use a popup/modal editor (not inline) and support editing both subject names and sub-topic names.",
+    "Streak Freeze feature: costs 50 coins (supersedes earlier 500-coin mention) and must record 'freeze used' per day so the streak calendar can mark those days."
   ],
   "known_issues": [
     "Build/editor may loop between main.mo and migration.mo when attempting schema/migration changes for timetable completion history.",
     "App icon/logo does not match the user-provided image (reported mismatch after deployment).",
     "Level progression currently appears incorrect: Level number may be incrementing per rank; it should stay the same for all 5 ranks within a Level.",
     "Avatar is not being added/applied (user reports avatar not added).",
-    "Profile photo/avatar is still not working as expected after the latest deployment (user reports it still fails)."
+    "Profile photo/avatar is still not working as expected after the latest deployment (user reports it still fails).",
+    "Syllabus editing is not currently available in the UI (no edit logic/buttons present), causing user inability to edit syllabus.",
+    "Pomodoro timer duration/settings cannot be changed (user reports unable to change Pomodoro timer)."
   ],
   "isFixRequest": false,
   "existing_features": [
@@ -283,6 +288,174 @@
         "REQ-44"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-new-authenticated-ui-section-for-a-syllabus-tracker-that-displays-a-list-of-subjects-where-each-subject-card-contains-exactly-three-sub-topic-checkboxes-shown-under-the-subject",
+      "title": "Add a new authenticated UI section for a Syllabus Tracker that displays a list of subjects, where each subject card contains exactly three sub-topic checkboxes shown under the subject.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-for-each-subject-in-the-syllabus-tracker-render-a-progress-bar-above-that-subject-that-fills-based-on-how-many-of-the-three-sub-topic-checkboxes-are-checked-0-3-to-3-3",
+      "title": "For each subject in the Syllabus Tracker, render a progress bar above that subject that fills based on how many of the three sub-topic checkboxes are checked (0/3 to 3/3).",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-exam-countdown-timer-widget-at-the-top-of-the-syllabus-tracker-page-section-that-allows-the-user-to-choose-a-target-date-time-and-displays-a-countdown-in-days-and-hours-remaining-until-that-chosen-date-time",
+      "title": "Add an Exam Countdown timer widget at the top of the Syllabus Tracker page/section that allows the user to choose a target date/time and displays a countdown in Days and Hours remaining until that chosen date/time.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-integrate-the-syllabus-tracker-exam-countdown-into-the-existing-authenticated-navigation-so-users-can-access-it-from-the-main-tab-based-dashboard",
+      "title": "Integrate the Syllabus Tracker + Exam Countdown into the existing authenticated navigation so users can access it from the main tab-based dashboard.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-syllabustrackersection-tsx-add-a-popup-modal-dialog-workflow-to-edit-an-existing-syllabus-subject-s-name-and-its-three-sub-topic-names-frontend-only-local-state",
+      "title": "In `frontend/src/components/SyllabusTrackerSection.tsx`, add a popup (modal dialog) workflow to edit an existing Syllabus subject’s name and its three sub-topic names (frontend-only, local state).",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-syllabustrackersection-tsx-add-a-popup-modal-dialog-workflow-to-create-a-new-syllabus-subject-with-exactly-three-sub-topics-frontend-only-local-state",
+      "title": "In `frontend/src/components/SyllabusTrackerSection.tsx`, add a popup (modal dialog) workflow to create a new Syllabus subject with exactly three sub-topics (frontend-only, local state).",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-frontend-src-components-syllabustrackersection-tsx-add-a-delete-workflow-for-syllabus-subjects-frontend-only-local-state-with-a-confirmation-step",
+      "title": "In `frontend/src/components/SyllabusTrackerSection.tsx`, add a delete workflow for Syllabus subjects (frontend-only, local state) with a confirmation step.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-existing-syllabus-tracker-behaviors-continue-to-work-after-adding-popup-crud-sub-topic-checkbox-toggling-per-subject-progress-calculation-and-the-existing-exam-countdown-widget",
+      "title": "Ensure the existing Syllabus Tracker behaviors continue to work after adding popup CRUD: sub-topic checkbox toggling, per-subject progress calculation, and the existing Exam Countdown widget.",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-purchasable-streak-freeze-economy-feature-that-costs-50-coins-deducts-coins-on-purchase-and-persists-the-user-s-available-freeze-count-in-the-backend-so-it-is-retained-across-reloads-logins",
+      "title": "Implement a purchasable 'Streak Freeze 🧊' economy feature that costs 50 coins, deducts coins on purchase, and persists the user’s available freeze count in the backend so it is retained across reloads/logins.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-buy-freeze-button-in-the-authenticated-ui-that-allows-the-user-to-purchase-a-streak-freeze-for-50-coins-and-display-the-user-s-current-streak-freeze-count-near-the-streak-ui",
+      "title": "Add a 'Buy Freeze' button in the authenticated UI that allows the user to purchase a Streak Freeze for 50 coins, and display the user’s current Streak Freeze count near the streak UI.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-github-style-visual-heatmap-calendar-to-the-main-dashboard-view-directly-below-the-syllabus-section-the-heatmap-should-render-days-for-a-recent-window-at-minimum-last-90-days-and-mark-a-day-as-green-glowing-if-at-least-one-task-was-completed-on-that-day",
+      "title": "Add a GitHub-style 'Visual Heatmap 🔥' calendar to the main dashboard view directly below the Syllabus section. The heatmap should render days for a recent window (at minimum last 90 days) and mark a day as green (glowing) if at least one task was completed on that day.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-backend-task-persistence-so-the-system-can-accurately-compute-tasks-completed-per-day-historically-by-storing-a-completion-timestamp-for-tasks-ensure-the-completion-timestamp-is-set-when-a-task-is-marked-completed-and-cleared-when-a-task-is-uncompleted-and-that-existing-tasks-upgrade-safely",
+      "title": "Extend backend task persistence so the system can accurately compute 'tasks completed per day' historically by storing a completion timestamp for tasks. Ensure the completion timestamp is set when a task is marked completed and cleared when a task is uncompleted, and that existing tasks upgrade safely.",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-reflect-the-scholar-gold-badge-in-the-authenticated-ranks-section-ui-by-showing-it-as-unlocked-owned-once-the-user-reaches-the-30-day-streak-milestone-with-clear-english-labeling",
+      "title": "Reflect the 'Scholar Gold 🏅' badge in the authenticated 'Ranks' section UI by showing it as unlocked/owned once the user reaches the 30-day streak milestone, with clear English labeling.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-8-00-pm-daily-in-app-notification-check-while-the-app-is-open-that-if-no-syllabus-subjects-have-been-checked-off-for-the-current-day-triggers-a-browser-notification-with-the-exact-message-don-t-break-the-chain-your-sigma-status-is-at-risk",
+      "title": "Implement an 8:00 PM daily in-app notification check (while the app is open) that, if no Syllabus subjects have been checked off for the current day, triggers a browser notification with the exact message: \"Don't break the chain! Your Sigma status is at risk! 🗿\"",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-daily-syllabus-checked-off-activity-in-a-way-that-the-8-00-pm-in-app-notification-logic-can-reliably-determine-whether-any-subjects-were-checked-off-today-including-after-a-page-reload",
+      "title": "Persist daily Syllabus 'checked off' activity in a way that the 8:00 PM in-app notification logic can reliably determine whether any subjects were checked off today (including after a page reload).",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-pomodoro-timer-ui-in-frontend-src-components-timersection-tsx-so-the-pomodoro-duration-is-user-configurable-not-hard-coded-to-25-minutes",
+      "title": "Update the Pomodoro timer UI in `frontend/src/components/TimerSection.tsx` so the Pomodoro duration is user-configurable (not hard-coded to 25 minutes).",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-the-user-selected-pomodoro-duration-on-the-client-so-it-is-retained-after-page-reloads-and-is-used-as-the-default-pomodoro-duration-on-next-visit",
+      "title": "Persist the user-selected Pomodoro duration on the client so it is retained after page reloads and is used as the default Pomodoro duration on next visit.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-focus-timer-pomodoro-duration-setting-to-allow-values-up-to-600-minutes-instead-of-120-including-ui-input-constraints-local-clamping-and-localstorage-persistence-clamping",
+      "title": "Update the Focus Timer (Pomodoro) duration setting to allow values up to 600 minutes (instead of 120), including UI input constraints, local clamping, and localStorage persistence clamping.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-configurable-break-timer-duration-setting-break-duration-minutes-associated-with-the-pomodoro-workflow-and-enforce-a-maximum-of-600-minutes-for-the-break-duration-as-well",
+      "title": "Add a configurable Break Timer duration setting (\"Break Duration (minutes)\") associated with the Pomodoro workflow, and enforce a maximum of 600 minutes for the break duration as well.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-level-rank-labels-shown-in-the-app-to-exactly-use-this-5-rank-list-in-this-order-for-every-level-noob-beginner-advanced-student-pro-student-sigma-student-i-e-remove-the-emoji-from-the-noob-rank-everywhere-and-ensure-consistent-spelling-casing-across-ui-and-backend-derived-display-text",
+      "title": "Update the Level rank labels shown in the app to exactly use this 5-rank list (in this order) for every Level: \"Noob\", \"Beginner 📈\", \"Advanced Student 💪🏻\", \"Pro Student 🔥\", \"Sigma Student 🗿\" (i.e., remove the 🫠 emoji from the Noob rank everywhere and ensure consistent spelling/casing across UI and backend-derived display text).",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-revise-the-level-upgrade-coin-cost-rules-end-to-end-so-the-required-coin-cost-depends-on-the-level-number-all-paid-upgrades-within-level-1-cost-50-coins-all-paid-upgrades-within-level-2-cost-100-coins-and-for-each-subsequent-level-up-to-level-50-the-paid-upgrade-cost-increases-by-50-coins-per-level-i-e-paidupgradecost-level-level-50-keep-the-initial-stage-level-1-noob-free-0-coins-keep-the-rule-that-level-number-stays-the-same-across-its-5-ranks-before-incrementing-and-keep-the-rule-that-users-can-only-purchase-the-immediate-next-stage-no-skipping",
+      "title": "Revise the Level upgrade coin-cost rules end-to-end so the required coin cost depends on the Level number: all paid upgrades within Level 1 cost 50 coins; all paid upgrades within Level 2 cost 100 coins; and for each subsequent Level up to Level 50 the paid upgrade cost increases by 50 coins per Level (i.e., paidUpgradeCost(level) = level * 50). Keep the initial stage (Level 1 - Noob) free (0 coins), keep the rule that Level number stays the same across its 5 ranks before incrementing, and keep the rule that users can only purchase the immediate next stage (no skipping).",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -539,6 +712,108 @@
       "summary": "Add Task Categories/Tags: extend the task data model to support assigning one or more tags (text labels) to each task, and add backend methods to create/update tags on tasks and to list tasks with their tags for the caller.",
       "reqIds": [
         "REQ-40"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Add a Syllabus Tracker: list of subjects, each with sub-topics as checkboxes and a per-subject progress bar that fills as sub-topics are checked",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Add an Exam Countdown widget/timer at the top of the page that shows a countdown (Days + Hours) to a user-selected date",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Add Create/Edit/Delete for Syllabus entries (subjects) in the Syllabus Tracker UI (frontend-only/local state)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Add popup-based editing UI for Syllabus subject names and sub-topic names (frontend-only/local state)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Reward rule: automatically grant 100 coins when a user reaches a 10-day study streak milestone",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Add a purchasable Streak Freeze item (cost: 50 coins) that, when used, prevents the user’s streak from resetting on a missed day; include a 'Buy Freeze' UI action",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Add a streak calendar view showing streak day-by-day and clearly marking days where a Streak Freeze was used",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Add a GitHub-style Visual Heatmap calendar on the dashboard (below the syllabus) where each day glows green when at least one task is completed",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Add a 30-day streak milestone reward: grant 500 coins and a 'Scholar Gold' badge; reflect this milestone/badge in the Ranks section",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Enable notifications: at 8:00 PM daily, if no subjects have been checked off that day, send a reminder message ('Don't break the chain! ...')",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "Update the backend study-streak logic so that if the user misses exactly one day (i.e., the gap since last streak activity is 2 calendar days) and the user has at least 1 Streak Freeze available, the streak does not reset: consume 1 freeze and keep the streak progression continuous for that missed day.",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Update streak milestone reward logic so that reaching a 10-day study streak grants 100 coins, and reaching a 30-day study streak grants 500 coins plus a 'Scholar Gold 🏅' badge. Ensure rewards are granted only once per milestone per user and are persisted in the backend.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Fix Pomodoro timer settings so the user can change/update the Pomodoro duration (currently not changeable)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Limit the maximum user-set duration to 600 minutes for both the Pomodoro timer and the break timer",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Revise Level system coin-cost rules: Level 1 upgrades cost 50 coins; Level 2 upgrades cost 100 coins; for subsequent levels up to Level 50, the per-level upgrade cost increases by 50 coins each level (clarify exact formula and apply consistently across backend+UI).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-68",
+      "summary": "Ensure existing users with previously stored Level stage data continue to work after changing the Noob label and pricing rules, without breaking Level status fetching or purchase flow; normalize/handle any legacy stored Noob rank values (e.g., \"Noob 🫠\") so users do not get stuck or see inconsistent labels.",
+      "reqIds": [
+        "REQ-68"
       ],
       "status": "pending"
     }

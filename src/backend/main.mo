@@ -5,24 +5,22 @@ import Int "mo:core/Int";
 import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
 import Nat "mo:core/Nat";
-import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import List "mo:core/List";
+import Migration "migration";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-// Specify the data migration function in the with-clause
+// Use migration on upgrade to clear all invalid/old rank values from persistent state.
 (with migration = Migration.run)
 actor {
-  include MixinStorage();
-
   let initialCoins = 500;
   let appStartTime = 1662049941715;
   let backgroundUploadCost = 200;
   let maxDailyStopwatchRewards = 3;
+  let streakFreezeCost = 50;
 
   let accessControlState = AccessControl.initState();
 
@@ -36,6 +34,7 @@ actor {
     createdAt : Time.Time;
     tags : [Text];
     noteId : ?Nat;
+    completedAt : ?Time.Time; // Added completion timestamp
   };
 
   public type TimetableEntry = {
@@ -112,7 +111,7 @@ actor {
   public type PersistentStopwatch = {
     startTime : Time.Time;
     isRunning : Bool;
-    accumulatedTime : Nat;
+    accumulatedTime : Nat; // Use compatible Nat type for stability
   };
 
   public type TimetableTick = {
@@ -157,13 +156,14 @@ actor {
   };
 
   let levelRanks = [
-    "Noob 🫠",
+    "Noob",
     "Beginner 📈",
     "Advanced Student 💪🏻",
     "Pro Student 🔥",
     "Sigma Student 🗿",
   ];
 
+  // Persistent user data structures
   let userTasks = Map.empty<Principal, Map.Map<Nat, Task>>();
   let userTimetableEntries = Map.empty<Principal, Map.Map<Nat, TimetableEntry>>();
   let userReminders = Map.empty<Principal, Map.Map<Nat, Reminder>>();
@@ -193,11 +193,24 @@ actor {
 
   let defaultLevelStage : LevelStage = {
     level = 1;
-    rank = "Noob 🫠";
-    displayText = "Level 1 - Noob 🫠";
+    rank = "Noob";
+    displayText = "Level 1 - Noob";
     requiredCoins = 0;
   };
 
+  // Streak Freeze - persistent map
+  let userStreakFreezes = Map.empty<Principal, Nat>();
+
+  // Streak Milestone Reward Tracking
+  public type StreakMilestoneRewards = {
+    has10DayReward : Bool;
+    has30DayReward : Bool;
+    hasScholarGoldBadge : Bool;
+  };
+
+  let userStreakMilestoneRewards = Map.empty<Principal, StreakMilestoneRewards>();
+
+  include MixinStorage();
   include MixinAuthorization(accessControlState);
 
   func getUserTaskMap(user : Principal) : Map.Map<Nat, Task> {
@@ -348,48 +361,6 @@ actor {
     };
 
     summaries.add(today, updated);
-  };
-
-  func updateStreak(user : Principal, studyMinutes : Nat) {
-    if (studyMinutes < 10) {
-      return;
-    };
-
-    let now = Time.now();
-    let today = getDayStart(now);
-
-    switch (streakRecords.get(user)) {
-      case (null) {
-        let newRecord : StreakRecord = {
-          lastActivity = today;
-          streak = 1;
-        };
-        streakRecords.add(user, newRecord);
-      };
-      case (?record) {
-        let lastDay = getDayStart(record.lastActivity);
-        let daysDiff : Int = (today - lastDay) / (24 * 3600 * 1_000_000_000);
-
-        if (daysDiff == 0) {
-          // Same day, no update needed
-          return;
-        } else if (daysDiff == 1) {
-          // Consecutive day
-          let updated : StreakRecord = {
-            lastActivity = today;
-            streak = record.streak + 1;
-          };
-          streakRecords.add(user, updated);
-        } else {
-          // Streak broken, restart
-          let updated : StreakRecord = {
-            lastActivity = today;
-            streak = 1;
-          };
-          streakRecords.add(user, updated);
-        };
-      };
-    };
   };
 
   func verifyTimetableEntryOwnership(caller : Principal, entryId : Nat) : Bool {
@@ -576,9 +547,7 @@ actor {
       Runtime.trap("Unauthorized: Entry does not belong to caller");
     };
 
-    timetableTicks.toArray().map(
-      func((_, tick)) { tick }
-    ).filter(
+    timetableTicks.values().toArray().filter(
       func(tick) {
         switch (timetableTickOwners.get(entryId)) {
           case (?owner) { owner == caller and tick.entryId == entryId };
@@ -716,6 +685,7 @@ actor {
       createdAt = Time.now();
       tags;
       noteId;
+      completedAt = null;
     };
     tasks.add(id, task);
     id;
@@ -730,7 +700,11 @@ actor {
     switch (tasks.get(taskId)) {
       case (null) { Runtime.trap("Task not found") };
       case (?task) {
-        let updatedTask = { task with completed = true };
+        let updatedTask = {
+          task with
+          completed = true;
+          completedAt = ?Time.now();
+        };
         tasks.add(taskId, updatedTask);
       };
     };
@@ -1015,7 +989,7 @@ actor {
       };
 
       updateDailySummary(caller, rewardAmount, durationMinutes);
-      updateStreak(caller, durationMinutes);
+      await updateStreak(caller, durationMinutes);
     };
 
     sessionId;
@@ -1279,7 +1253,7 @@ actor {
     let todayRewards = getTodayRewardCount(caller);
     if (todayRewards >= maxDailyStopwatchRewards) {
       updateDailySummary(caller, 0, elapsedMinutes);
-      updateStreak(caller, elapsedMinutes);
+      await updateStreak(caller, elapsedMinutes);
       return false;
     };
 
@@ -1305,7 +1279,7 @@ actor {
     };
 
     updateDailySummary(caller, rewardAmount, elapsedMinutes);
-    updateStreak(caller, elapsedMinutes);
+    await updateStreak(caller, elapsedMinutes);
 
     true;
   };
@@ -1347,8 +1321,10 @@ actor {
   };
 
   func createRank(level : Nat, rankIndex : Nat) : LevelStage {
-    let requiredCoins = if (level == 1 and rankIndex == 0) { 0 } else {
+    let requiredCoins = if (level == 1) {
       50;
+    } else {
+      level * 50;
     };
     createLevelStage(level, levelRanks[getRankIndex(rankIndex)], requiredCoins);
   };
@@ -1508,7 +1484,11 @@ actor {
     switch (tasks.get(taskId)) {
       case (null) { Runtime.trap("Task not found") };
       case (?task) {
-        let updatedTask = { task with completed = not task.completed };
+        let updatedTask = {
+          task with
+          completed = not task.completed;
+          completedAt = if (not task.completed) { ?Time.now() } else { null };
+        };
         tasks.add(taskId, updatedTask);
       };
     };
@@ -1533,6 +1513,10 @@ actor {
 
   // Study goal methods
   public query ({ caller }) func getDailyStudyGoal() : async ?Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view daily study goal");
+    };
+
     switch (userProfiles.get(caller)) {
       case (null) { null };
       case (?profile) { ?profile.dailyStudyGoal };
@@ -1548,6 +1532,217 @@ actor {
         userProfiles.add(caller, updatedProfile);
         newGoal;
       };
+    };
+  };
+
+  // Streak Freeze Economy Methods
+
+  public shared ({ caller }) func purchaseStreakFreeze() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can purchase Streak Freeze");
+    };
+
+    switch (userProfiles.get(caller)) {
+      case (null) { Runtime.trap("Profile not found") };
+      case (?profile) {
+        if (profile.coins < streakFreezeCost) {
+          Runtime.trap("Insufficient coins to purchase Streak Freeze");
+        };
+
+        // Deduct coins
+        let updatedCoins = profile.coins - streakFreezeCost;
+        let updatedProfile = { profile with coins = updatedCoins };
+        userProfiles.add(caller, updatedProfile);
+
+        // Increment Streak Freeze count
+        let currentFreezes = switch (userStreakFreezes.get(caller)) {
+          case (null) { 0 };
+          case (?count) { count };
+        };
+        userStreakFreezes.add(caller, currentFreezes + 1);
+      };
+    };
+  };
+
+  public query ({ caller }) func getAvailableStreakFreezes() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view available Streak Freezes");
+    };
+
+    switch (userStreakFreezes.get(caller)) {
+      case (null) { 0 };
+      case (?count) { count };
+    };
+  };
+
+  public shared ({ caller }) func useStreakFreeze() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can use Streak Freeze");
+    };
+
+    switch (userStreakFreezes.get(caller)) {
+      case (null) {
+        Runtime.trap("No available Streak Freezes");
+      };
+      case (?count) {
+        if (count == 0) {
+          Runtime.trap("No available Streak Freezes");
+        };
+        userStreakFreezes.add(caller, count - 1);
+        true;
+      };
+    };
+  };
+
+  // Updated Study Streak Logic with Streak Freeze support
+  func updateStreak(user : Principal, studyMinutes : Nat) : async () {
+    if (studyMinutes < 10) {
+      return;
+    };
+
+    let now = Time.now();
+    let today = getDayStart(now);
+
+    switch (streakRecords.get(user)) {
+      case (null) {
+        let newRecord : StreakRecord = {
+          lastActivity = today;
+          streak = 1;
+        };
+        streakRecords.add(user, newRecord);
+      };
+      case (?record) {
+        let lastDay = getDayStart(record.lastActivity);
+        let daysDiff : Int = (today - lastDay) / (24 * 3600 * 1_000_000_000);
+
+        if (daysDiff == 0) {
+          // Same day, no update needed
+          return;
+        } else if (daysDiff == 1) {
+          // Consecutive day
+          let updated : StreakRecord = {
+            lastActivity = today;
+            streak = record.streak + 1;
+          };
+          streakRecords.add(user, updated);
+        } else if (daysDiff == 2) {
+          // Missed exactly one day, can use Streak Freeze
+          let availableFreezes = switch (userStreakFreezes.get(user)) {
+            case (null) { 0 };
+            case (?count) { count };
+          };
+
+          if (availableFreezes > 0) {
+            // Use one Streak Freeze and continue streak
+            userStreakFreezes.add(user, availableFreezes - 1);
+
+            let updated : StreakRecord = {
+              lastActivity = today;
+              streak = record.streak + 1;
+            };
+            streakRecords.add(user, updated);
+          } else {
+            // No Streak Freezes left, streak broken
+            let updated : StreakRecord = {
+              lastActivity = today;
+              streak = 1;
+            };
+            streakRecords.add(user, updated);
+          };
+        } else {
+          // Missed more than one day, streak broken
+          let updated : StreakRecord = {
+            lastActivity = today;
+            streak = 1;
+          };
+          streakRecords.add(user, updated);
+        };
+      };
+    };
+
+    // Process Streak Milestone Rewards
+    await processStreakMilestoneRewards(user);
+  };
+
+  public shared ({ caller }) func hasActiveStudyStreak() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check study streak");
+    };
+
+    switch (streakRecords.get(caller)) {
+      case (null) { false };
+      case (?_) { true };
+    };
+  };
+
+  // Streak Milestone Reward Logic
+  private func processStreakMilestoneRewards(user : Principal) : async () {
+    let currentStreak = switch (streakRecords.get(user)) {
+      case (null) { 0 };
+      case (?record) { record.streak };
+    };
+
+    let userRewards = switch (userStreakMilestoneRewards.get(user)) {
+      case (null) {
+        let initialRewards : StreakMilestoneRewards = {
+          has10DayReward = false;
+          has30DayReward = false;
+          hasScholarGoldBadge = false;
+        };
+        userStreakMilestoneRewards.add(user, initialRewards);
+        initialRewards;
+      };
+      case (?rewards) { rewards };
+    };
+
+    // 10-day Streak Reward
+    if (currentStreak == 10 and not userRewards.has10DayReward) {
+      switch (userProfiles.get(user)) {
+        case (null) {};
+        case (?profile) {
+          let updatedProfile = { profile with coins = profile.coins + 100 };
+          userProfiles.add(user, updatedProfile);
+        };
+      };
+
+      let updatedRewards : StreakMilestoneRewards = {
+        userRewards with has10DayReward = true;
+      };
+      userStreakMilestoneRewards.add(user, updatedRewards);
+    };
+
+    // 30-day Streak Reward and Scholar Gold Badge
+    if (currentStreak == 30 and not userRewards.has30DayReward) {
+      switch (userProfiles.get(user)) {
+        case (null) {};
+        case (?profile) {
+          let updatedProfile = { profile with coins = profile.coins + 500 };
+          userProfiles.add(user, updatedProfile);
+        };
+      };
+
+      let updatedRewards : StreakMilestoneRewards = {
+        userRewards with has30DayReward = true;
+        hasScholarGoldBadge = true;
+      };
+      userStreakMilestoneRewards.add(user, updatedRewards);
+    };
+  };
+
+  public query ({ caller }) func getStreakMilestoneRewards() : async StreakMilestoneRewards {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view streak milestone rewards");
+    };
+
+    switch (userStreakMilestoneRewards.get(caller)) {
+      case (null) {
+        {
+          has10DayReward = false;
+          has30DayReward = false;
+          hasScholarGoldBadge = false;
+        };
+      };
+      case (?rewards) { rewards };
     };
   };
 };
