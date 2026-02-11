@@ -1,43 +1,102 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T13:10:50.724Z",
-  "summary": "Frontend references to v4 icon filenames were updated in Header, LoginScreen, and index.html, but the diff does not show any newly generated PNG icon assets being added under frontend/public/assets/generated. Several unrelated changes/descriptions also appear (e.g., avatar refresh logic, expanded project_state summary), which are outside the logo-mismatch scope.",
+  "generatedAt": "2026-02-11T13:19:06.431Z",
+  "summary": "REQ-1 appears partially implemented (backend cost set to 50), and global background styling is applied in App.tsx via a new useAppBackground hook. However, the diff summary does not provide enough evidence that frontend streak-freeze UI text was updated everywhere, that badges are displayed/persisted, or that purchased themes/background selection is persisted via the backend as required. Several unrelated changes (rank rename + migration, placeholder App content) were introduced without being requested.",
   "missing_requirements": [
     {
-      "id": "REQ-71",
-      "requirement": "Regenerate the Scholar Gold logo/app-icon/favicons from Screenshot_2026_0210_153957-1.jpg, export at least 512x512, 192x192, and 32x32 PNGs, and use fresh cache-safe filenames stored under frontend/public/assets/generated.",
-      "reason": "The diff shows no added static asset files (Added: 0) and no evidence of new PNGs being created/committed under frontend/public/assets/generated; only code references were changed to point at v4 filenames.",
+      "id": "REQ-1",
+      "requirement": "Change the Streak Freeze price to 50 coins everywhere it is enforced and displayed (backend purchase validation and all frontend UI text).",
+      "reason": "Backend constant is shown as 50, but the diff summary does not show purchase validation logic and error message text mentioning 50 coins, nor does it show Timer section UI labels/helper text updated to 50 coins. Modified TimerSection.tsx is listed but its content is not shown in the summary, so this cannot be verified.",
       "evidence": [
-        "File diff summary header: \"Added: 0\"",
-        "frontend/index.html",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/LoginScreen.tsx"
+        "backend/main.mo",
+        "frontend/src/components/TimerSection.tsx (modified but content not shown)",
+        "frontend/src/utils/prices.ts (added, but usage not shown)"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "requirement": "Display purchased/earned badges on the user profile, including badges earned via streak milestones and badges purchased with coins, and ensure they persist across reloads/logins for the same user.",
+      "reason": "ProfileSection.tsx is modified and a new useCosmeticsInventory hook was added, but the diff summary does not include any code showing a dedicated badges area/grid, mapping streak milestone badge tier/state into displayed badges, or backend persistence of purchased/earned badges.",
+      "evidence": [
+        "frontend/src/components/ProfileSection.tsx (modified but content not shown)",
+        "frontend/src/hooks/useCosmeticsInventory.ts (added but content not shown)",
+        "backend/main.mo (truncated; no badge persistence evidence shown)"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "requirement": "Make purchased themes apply as the app background (global app background), using the user's currently selected purchased theme, persisting across reloads/logins for the same user.",
+      "reason": "Global background styling is applied in App.tsx, but persistence appears to be implemented via localStorage keyed by principal rather than via backend state, and the diff summary does not show any linkage between 'purchased themes' and the selected background (e.g., verifying ownership, selecting from purchased themes, persisting selection in backend).",
+      "evidence": [
+        "frontend/src/hooks/useAppBackground.ts (stores/loads from localStorage)",
+        "frontend/src/App.tsx (applies background styles from useAppBackground)",
+        "frontend/src/components/BackgroundSettings.tsx (modified but content not shown)",
+        "backend/main.mo (truncated; no theme selection persistence evidence shown)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Avatar refresh behavior in Header (state + effect to force avatar re-render when profile image changes).",
-      "reason": "Not requested by REQ-71/REQ-72 (scope limited to regenerating icons and updating references).",
+      "description": "Rank name migration/rename from \"Sigma Student 🗿\" to \"Topper Student🏆\" including upgrade migration logic.",
+      "reason": "Not requested by any requirement; the BuildRequest is about cosmetics (frames/badges/themes) and streak freeze cost.",
       "evidence": [
-        "frontend/src/components/Header.tsx (adds avatarKey state, useEffect on profile?.profileImage, and query param ?v=...)"
+        "backend/migration.mo",
+        "backend/main.mo (comments and migration integration)"
       ]
     },
     {
-      "description": "Expanded/changed project_state.json summary describing unrelated features (e.g., purchasable “Streak Freeze”, heatmaps, milestone rewards, reminders).",
-      "reason": "BuildRequest explicitly says not to introduce new UI features unrelated to the logo/icon mismatch and not to change backend logic/schemas for this request; updating project state to reflect unrelated features is outside scope.",
+      "description": "App main content replaced/contains a placeholder message indicating the backend is being set up (potentially an unrelated UI change).",
+      "reason": "Non-goals specify not redesigning unrelated sections; the shown App.tsx main content appears unrelated to cosmetics display/backgrounds and may represent an unrequested change.",
       "evidence": [
-        "project_state.json (truncated) summary field content"
+        "frontend/src/App.tsx (\"The backend is currently being set up. Please check back soon!\")"
       ]
     }
   ],
-  "confidence": 0.74,
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/components/BackgroundSettings.tsx",
+    "frontend/src/components/DailyGoalProgressCard.tsx",
+    "frontend/src/components/DailySyllabusReminderNotifications.tsx",
     "frontend/src/components/Header.tsx",
-    "frontend/src/components/LoginScreen.tsx",
+    "frontend/src/components/MonthlyStudySummaryView.tsx",
+    "frontend/src/components/NoteLinker.tsx",
+    "frontend/src/components/NotesSection.tsx",
+    "frontend/src/components/ProfileAvatar.tsx",
+    "frontend/src/components/ProfileSection.tsx",
+    "frontend/src/components/ProfileSetupDialog.tsx",
+    "frontend/src/components/ReminderNotifications.tsx",
+    "frontend/src/components/RemindersSection.tsx",
+    "frontend/src/components/RewardShopSection.tsx",
+    "frontend/src/components/StartupErrorScreen.tsx",
+    "frontend/src/components/StopwatchSection.tsx",
+    "frontend/src/components/StudyHeatmapView.tsx",
+    "frontend/src/components/SyllabusTrackerSection.tsx",
+    "frontend/src/components/TaskCompletionHeatmap.tsx",
+    "frontend/src/components/TimerSection.tsx",
+    "frontend/src/components/TimetableSection.tsx",
+    "frontend/src/components/TodoSection.tsx",
+    "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+    "frontend/src/components/timetable/DoneTodayCheckbox.tsx",
+    "frontend/src/components/timetable/EditTimetableEntryDialog.tsx",
+    "frontend/src/components/timetable/TimetableCompletionHistoryDialog.tsx",
+    "frontend/src/hooks/useAppBackground.ts",
+    "frontend/src/hooks/useCosmeticsInventory.ts",
+    "frontend/src/hooks/useDailySyllabusCheckoff.ts",
+    "frontend/src/hooks/useLocalStorageState.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/NotificationManager.ts",
+    "frontend/src/utils/backendErrorMessage.ts",
+    "frontend/src/utils/levelRanks.ts",
+    "frontend/src/utils/prices.ts",
+    "frontend/src/utils/streakBadges.ts",
+    "frontend/src/utils/timetableDates.ts",
+    "frontend/src/utils/timetableHistory.ts",
+    "frontend/src/utils/weeklyStudyGraph.ts",
     "project_state.json"
   ]
 }

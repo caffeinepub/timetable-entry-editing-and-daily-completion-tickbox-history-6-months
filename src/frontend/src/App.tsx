@@ -1,48 +1,38 @@
-import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Header } from './components/Header';
 import { LoginScreen } from './components/LoginScreen';
-import { ProfileSetupDialog } from './components/ProfileSetupDialog';
-import { TodoSection } from './components/TodoSection';
-import { TimetableSection } from './components/TimetableSection';
-import { NotesSection } from './components/NotesSection';
-import { RemindersSection } from './components/RemindersSection';
-import { TimerSection } from './components/TimerSection';
-import { ProfileSection } from './components/ProfileSection';
-import { BackgroundSettings } from './components/BackgroundSettings';
-import { RewardShopSection } from './components/RewardShopSection';
-import { SyllabusTrackerSection } from './components/SyllabusTrackerSection';
-import { ReminderNotifications } from './components/ReminderNotifications';
-import { DailySyllabusReminderNotifications } from './components/DailySyllabusReminderNotifications';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile } from './hooks/useQueries';
-import { BookOpen, Calendar, FileText, Bell, Clock, User, Palette, ShoppingBag } from 'lucide-react';
+import { useActor } from './hooks/useActor';
+import { useAppBackground } from './hooks/useAppBackground';
+import { Button } from '@/components/ui/button';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
 
 function AppContent() {
-  const { identity, isInitializing } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
-  const [activeTab, setActiveTab] = useState('syllabus');
+  const { identity, isInitializing: authInitializing, clear } = useInternetIdentity();
+  const { actor, isFetching: actorFetching } = useActor();
+  const { background } = useAppBackground();
+  const { theme, setTheme } = useTheme();
 
   const isAuthenticated = !!identity;
 
-  if (isInitializing || (isAuthenticated && profileLoading)) {
+  if (authInitializing || actorFetching) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground">Initializing Scholar Gold...</p>
         </div>
       </div>
     );
@@ -52,92 +42,72 @@ function AppContent() {
     return <LoginScreen />;
   }
 
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const getBackgroundStyle = () => {
+    if (background.type === 'gradient') {
+      return { background: background.value };
+    } else if (background.type === 'color') {
+      return { backgroundColor: background.value };
+    } else if (background.type === 'image') {
+      return {
+        backgroundImage: `url(${background.value})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+      };
+    }
+    return {};
+  };
+
+  const handleLogout = async () => {
+    await clear();
+  };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <ReminderNotifications />
-      <DailySyllabusReminderNotifications />
-      
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 mb-6">
-            <TabsTrigger value="syllabus" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Syllabus</span>
-            </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Tasks</span>
-            </TabsTrigger>
-            <TabsTrigger value="timetable" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Timetable</span>
-            </TabsTrigger>
-            <TabsTrigger value="notes" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Notes</span>
-            </TabsTrigger>
-            <TabsTrigger value="reminders" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">Reminders</span>
-            </TabsTrigger>
-            <TabsTrigger value="timer" className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span className="hidden sm:inline">Timer</span>
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span className="hidden sm:inline">Profile</span>
-            </TabsTrigger>
-            <TabsTrigger value="rewards" className="flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4" />
-              <span className="hidden sm:inline">Rewards</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="syllabus">
-            <SyllabusTrackerSection />
-          </TabsContent>
-
-          <TabsContent value="tasks">
-            <TodoSection />
-          </TabsContent>
-
-          <TabsContent value="timetable">
-            <TimetableSection />
-          </TabsContent>
-
-          <TabsContent value="notes">
-            <NotesSection />
-          </TabsContent>
-
-          <TabsContent value="reminders">
-            <RemindersSection />
-          </TabsContent>
-
-          <TabsContent value="timer">
-            <TimerSection />
-          </TabsContent>
-
-          <TabsContent value="profile">
-            <ProfileSection />
-          </TabsContent>
-
-          <TabsContent value="rewards">
-            <RewardShopSection />
-          </TabsContent>
-        </Tabs>
+    <div className="min-h-screen flex flex-col" style={getBackgroundStyle()}>
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <img 
+              src="/assets/generated/scholar-gold-app-icon-v5.dim_512x512.png" 
+              alt="Scholar Gold" 
+              className="h-10 w-10 rounded-full object-cover"
+            />
+            <span className="text-xl font-bold">Scholar Gold</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+            <Button onClick={handleLogout} variant="outline">
+              Logout
+            </Button>
+          </div>
+        </div>
+      </header>
+      <main className="flex-1 container mx-auto px-4 py-6">
+        <div className="text-center p-8">
+          <h2 className="text-2xl font-bold mb-4">Welcome to Scholar Gold</h2>
+          <p className="text-muted-foreground mb-4">
+            The backend is currently being set up. Please check back soon!
+          </p>
+          <p className="text-sm text-muted-foreground">
+            You are logged in as: {identity?.getPrincipal().toString()}
+          </p>
+        </div>
       </main>
-
-      <footer className="border-t mt-12 py-6">
+      <footer className="border-t bg-card/50 backdrop-blur-sm py-4 mt-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>
-            © {new Date().getFullYear()} • Built with ❤️ using{' '}
+            © {new Date().getFullYear()} Scholar Gold. Built with ❤️ using{' '}
             <a
               href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(
-                window.location.hostname
+                typeof window !== 'undefined' ? window.location.hostname : 'scholar-gold'
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -148,8 +118,6 @@ function AppContent() {
           </p>
         </div>
       </footer>
-
-      {showProfileSetup && <ProfileSetupDialog />}
     </div>
   );
 }

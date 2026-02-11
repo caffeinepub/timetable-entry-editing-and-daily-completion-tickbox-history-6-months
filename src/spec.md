@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Scholar Gold logo mismatch by regenerating the app icon and favicon assets to match the latest uploaded reference, and update all frontend references to use the new cache-safe filenames.
+**Goal:** Add profile cosmetics (frame overlay, badge display, and theme-based app backgrounds) and update the streak freeze cost to 50 coins.
 
 **Planned changes:**
-- Regenerate Scholar Gold PNG icon assets from `Screenshot_2026_0210_153957-1.jpg`, matching the ornate gold circular border, deep navy radial background, central gold book icon, “SCHOLAR GOLD” text, and “made by PD” subtitle.
-- Export at least 512x512, 192x192, and 32x32 PNGs using fresh cache-safe filenames and store them under `frontend/public/assets/generated`.
-- Update `frontend/index.html` to reference the new favicon/app icon filenames (32x32, 192x192, 512x512) instead of any `*-v3.*` assets.
-- Update `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx` to reference the new 512x512 brand logo icon filename instead of the existing `*-v3.*` asset.
+- Change Streak Freeze price to 50 coins everywhere it is enforced and displayed (backend validation and all frontend UI text).
+- Update Profile avatar rendering so an unlocked/selected frame overlays on top of the circular avatar edge (including fallback initials), with no overlay when no frame is selected/owned.
+- Add a Profile badges area that displays earned streak milestone badges and coin-purchased badges, persisted across reloads/logins.
+- Apply the user’s selected purchased theme as the global app background (not only within background settings) and persist the selection across reloads/logins, with a default fallback when none is selected.
 
-**User-visible outcome:** After a normal reload, the browser tab favicon and the brand logo shown on the login screen and header match the latest Scholar Gold reference image without requiring manual cache clearing.
+**User-visible outcome:** Users see the Streak Freeze cost as 50 coins and can only buy it with at least 50 coins; profile frames visibly overlay the avatar; earned/purchased badges appear on the profile; and selected themes change the app’s overall background and persist between sessions.

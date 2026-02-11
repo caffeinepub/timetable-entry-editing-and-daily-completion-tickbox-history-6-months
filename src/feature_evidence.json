@@ -2,9 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-regenerate-the-scholar-gold-logo-app-icon-favicons-so-they-visually-match-the-latest-user-uploaded-reference-image-screenshot-2026-0210-153957-1-jpg-ornate-gold-circular-border-deep-navy-radial-background-central-gold-book-icon-scholar-gold-text-made-by-pd-subtitle-exporting-png-assets-in-standard-icon-sizes-and-using-fresh-cache-safe-filenames",
-      "featureTitle": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the latest user-uploaded reference image `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border + deep navy radial background + central gold book icon + “SCHOLAR GOLD” text + “made by PD” subtitle), exporting PNG assets in standard icon sizes and using fresh cache-safe filenames.",
-      "files": [],
+      "featureId": "feature-change-the-streak-freeze-price-to-50-coins-everywhere-it-is-enforced-and-displayed-backend-purchase-validation-and-all-frontend-ui-text",
+      "featureTitle": "Change the Streak Freeze price to 50 coins everywhere it is enforced and displayed (backend purchase validation and all frontend UI text).",
+      "files": [
+        "frontend/src/components/TimerSection.tsx",
+        "frontend/src/utils/prices.ts"
+      ],
       "components": [
         "core-infrastructure@1.0.2",
         "shadcn-ui@1.0.0",
@@ -17,17 +20,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-71"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-all-frontend-references-to-use-the-newly-generated-cache-safe-scholar-gold-icon-filenames-for-1-browser-favicon-and-app-icons-in-frontend-index-html-and-2-the-brand-logo-image-rendered-in-frontend-src-components-header-tsx-and-frontend-src-components-loginscreen-tsx-ensuring-the-displayed-logo-matches-the-latest-reference-image-after-a-normal-reload-no-manual-cache-clearing",
-      "featureTitle": "Update all frontend references to use the newly generated cache-safe Scholar Gold icon filenames for: (1) browser favicon and app icons in `frontend/index.html`, and (2) the brand logo image rendered in `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx`, ensuring the displayed logo matches the latest reference image after a normal reload (no manual cache clearing).",
+      "featureId": "feature-update-the-profile-avatar-rendering-so-that-when-a-user-has-an-unlocked-selected-frame-the-frame-visually-overlays-and-covers-the-circumference-of-the-profile-photo-a-ring-frame-sitting-on-top-of-the-circular-avatar-edge-not-behind-it",
+      "featureTitle": "Update the Profile avatar rendering so that when a user has an unlocked/selected frame, the frame visually overlays and covers the circumference of the profile photo (a ring/frame sitting on top of the circular avatar edge, not behind it).",
       "files": [
-        "frontend/index.html",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/LoginScreen.tsx"
+        "frontend/src/components/ProfileAvatar.tsx",
+        "frontend/src/components/ProfileSection.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -41,7 +43,56 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-72"
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-display-purchased-earned-badges-on-the-user-profile-including-badges-earned-via-streak-milestones-and-badges-purchased-with-coins",
+      "featureTitle": "Display purchased/earned badges on the user profile, including badges earned via streak milestones and badges purchased with coins.",
+      "files": [
+        "frontend/src/components/ProfileSection.tsx",
+        "frontend/src/components/RewardShopSection.tsx",
+        "frontend/src/hooks/useCosmeticsInventory.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-make-purchased-themes-apply-as-the-app-background-global-app-background-using-the-user-s-currently-selected-purchased-theme",
+      "featureTitle": "Make purchased themes apply as the app background (global app background), using the user's currently selected purchased theme.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/BackgroundSettings.tsx",
+        "frontend/src/components/RewardShopSection.tsx",
+        "frontend/src/hooks/useAppBackground.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "camera@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
       ],
       "confidence": "high"
     }

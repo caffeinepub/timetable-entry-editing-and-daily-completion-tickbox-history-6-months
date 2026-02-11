@@ -1,58 +1,126 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-10T13:10:50.729Z",
+  "generatedAt": "2026-02-11T13:19:06.434Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-71",
-        "summary": "Regenerate the Scholar Gold logo/app-icon/favicons so they visually match the latest user-uploaded reference image `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border + deep navy radial background + central gold book icon + “SCHOLAR GOLD” text + “made by PD” subtitle), exporting PNG assets in standard icon sizes and using fresh cache-safe filenames.",
+        "id": "REQ-1",
+        "summary": "Change the Streak Freeze price to 50 coins everywhere it is enforced and displayed (backend purchase validation and all frontend UI text).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
-          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
-          "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png"
+          "frontend/src/utils/prices.ts",
+          "frontend/src/components/TimerSection.tsx"
         ],
         "matchedFiles": [
-          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
-          "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
-          "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png"
+          "frontend/src/utils/prices.ts",
+          "frontend/src/components/TimerSection.tsx"
         ]
       },
       {
-        "id": "REQ-72",
-        "summary": "Update all frontend references to use the newly generated cache-safe Scholar Gold icon filenames for: (1) browser favicon and app icons in `frontend/index.html`, and (2) the brand logo image rendered in `frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx`, ensuring the displayed logo matches the latest reference image after a normal reload (no manual cache clearing).",
+        "id": "REQ-2",
+        "summary": "Update the Profile avatar rendering so that when a user has an unlocked/selected frame, the frame visually overlays and covers the circumference of the profile photo (a ring/frame sitting on top of the circular avatar edge, not behind it).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/index.html",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/LoginScreen.tsx"
+          "frontend/src/components/ProfileAvatar.tsx",
+          "frontend/src/components/ProfileSection.tsx"
         ],
         "matchedFiles": [
-          "frontend/index.html",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/LoginScreen.tsx"
+          "frontend/src/components/ProfileAvatar.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Display purchased/earned badges on the user profile, including badges earned via streak milestones and badges purchased with coins.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useCosmeticsInventory.ts",
+          "frontend/src/components/RewardShopSection.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useCosmeticsInventory.ts",
+          "frontend/src/components/RewardShopSection.tsx",
+          "frontend/src/components/ProfileSection.tsx"
+        ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Make purchased themes apply as the app background (global app background), using the user's currently selected purchased theme.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useAppBackground.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/RewardShopSection.tsx",
+          "frontend/src/components/BackgroundSettings.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useAppBackground.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/RewardShopSection.tsx",
+          "frontend/src/components/BackgroundSettings.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
-    "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
-    "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/BackgroundSettings.tsx",
+    "frontend/src/components/DailyGoalProgressCard.tsx",
+    "frontend/src/components/DailySyllabusReminderNotifications.tsx",
     "frontend/src/components/Header.tsx",
-    "frontend/src/components/LoginScreen.tsx",
+    "frontend/src/components/MonthlyStudySummaryView.tsx",
+    "frontend/src/components/NoteLinker.tsx",
+    "frontend/src/components/NotesSection.tsx",
+    "frontend/src/components/ProfileAvatar.tsx",
+    "frontend/src/components/ProfileSection.tsx",
+    "frontend/src/components/ProfileSetupDialog.tsx",
+    "frontend/src/components/ReminderNotifications.tsx",
+    "frontend/src/components/RemindersSection.tsx",
+    "frontend/src/components/RewardShopSection.tsx",
+    "frontend/src/components/StartupErrorScreen.tsx",
+    "frontend/src/components/StopwatchSection.tsx",
+    "frontend/src/components/StudyHeatmapView.tsx",
+    "frontend/src/components/SyllabusTrackerSection.tsx",
+    "frontend/src/components/TaskCompletionHeatmap.tsx",
+    "frontend/src/components/TimerSection.tsx",
+    "frontend/src/components/TimetableSection.tsx",
+    "frontend/src/components/TodoSection.tsx",
+    "frontend/src/components/WeeklyStudyTimeGraph.tsx",
+    "frontend/src/components/timetable/DoneTodayCheckbox.tsx",
+    "frontend/src/components/timetable/EditTimetableEntryDialog.tsx",
+    "frontend/src/components/timetable/TimetableCompletionHistoryDialog.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useAppBackground.ts",
+    "frontend/src/hooks/useCosmeticsInventory.ts",
+    "frontend/src/hooks/useDailySyllabusCheckoff.ts",
+    "frontend/src/hooks/useLocalStorageState.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/lib/NotificationManager.ts",
+    "frontend/src/utils/backendErrorMessage.ts",
+    "frontend/src/utils/levelRanks.ts",
+    "frontend/src/utils/prices.ts",
+    "frontend/src/utils/streakBadges.ts",
+    "frontend/src/utils/timetableDates.ts",
+    "frontend/src/utils/timetableHistory.ts",
+    "frontend/src/utils/weeklyStudyGraph.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

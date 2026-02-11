@@ -1,57 +1,111 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Regenerate Scholar Gold icon set from latest reference and update all frontend references",
+  "title": "Profile cosmetics overlays, profile badge display, global theme backgrounds, and streak freeze price UI update",
   "requirements": [
     {
-      "id": "REQ-71",
-      "summary": "Regenerate Scholar Gold logo/app-icon/favicons from the latest uploaded reference and add new cache-safe PNG icon assets in standard sizes.",
+      "id": "REQ-1",
+      "summary": "Update all frontend streak freeze cost displays and checks to use 50 coins consistently.",
       "acceptanceCriteria": [
-        "New PNG icon assets are generated from `Screenshot_2026_0210_153957-1.jpg` and are visually consistent with the uploaded reference (ornate gold ring, navy radial background, book icon, correct title/subtitle).",
-        "Generated icon assets use NEW filenames (not the existing `*-v3.*` filenames) to avoid browser caching issues.",
-        "At minimum, the generated set includes 512x512, 192x192, and 32x32 PNGs."
+        "Attempting to purchase a streak freeze with < 50 coins fails with an error message mentioning 50 coins.",
+        "Attempting to purchase a streak freeze with >= 50 coins succeeds (assuming other backend validations pass).",
+        "The Timer section UI shows the cost as 50 coins (including the call-to-action button label and any helper text).",
+        "The backend constant/value used for streak freeze cost is 50 (no remaining hard-coded 100s for this feature)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png",
+          "path": "frontend/src/utils/prices.ts",
           "operation": "create",
-          "description": "Add newly generated 512x512 Scholar Gold app icon PNG that matches `Screenshot_2026_0210_153957-1.jpg` (ornate gold circular border, deep navy radial background, central gold book icon, “SCHOLAR GOLD” text, “made by PD” subtitle). Filename must be cache-safe and must not reuse any `*-v3.*` name."
+          "description": "Create a shared frontend pricing constants module (e.g., export STREAK_FREEZE_COST = 50) so the cost is not duplicated across UI."
         },
         {
-          "path": "frontend/public/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png",
-          "operation": "create",
-          "description": "Add newly generated 192x192 Scholar Gold app icon PNG matching the latest reference `Screenshot_2026_0210_153957-1.jpg`. Use the new v4 cache-safe filename (do not reuse any `*-v3.*` name)."
-        },
-        {
-          "path": "frontend/public/assets/generated/scholar-gold-favicon-v4.dim_32x32.png",
-          "operation": "create",
-          "description": "Add newly generated 32x32 Scholar Gold favicon PNG matching the latest reference `Screenshot_2026_0210_153957-1.jpg`. Use the new v4 cache-safe filename (do not reuse any `*-v3.*` name)."
+          "path": "frontend/src/components/TimerSection.tsx",
+          "operation": "modify",
+          "description": "Replace the local STREAK_FREEZE_COST=100 with the shared constant from frontend/src/utils/prices.ts and ensure all displayed helper text/button labels and insufficient-coins messaging reflect 50 coins."
         }
       ]
     },
     {
-      "id": "REQ-72",
-      "summary": "Update all frontend favicon/app-icon and brand logo references to use the new v4 generated filenames so normal reload shows the updated logo without manual cache clearing.",
+      "id": "REQ-2",
+      "summary": "Render the selected/owned avatar frame as a true overlay ring on top of the circular avatar edge (for both image and fallback initials).",
       "acceptanceCriteria": [
-        "`frontend/index.html` no longer references `/assets/generated/scholar-gold-*-v3.*` and instead references the newly generated cache-safe icon filenames for 32x32, 192x192, and 512x512.",
-        "`frontend/src/components/Header.tsx` and `frontend/src/components/LoginScreen.tsx` no longer reference `/assets/generated/scholar-gold-app-icon-v3.dim_512x512.png` and instead reference the newly generated 512x512 icon filename.",
-        "After a hard refresh is NOT required: a normal reload shows the updated icon in the browser tab favicon and in both the authenticated header and login header brand mark."
+        "When a user has a profile image, the frame is rendered as an overlay on top of the avatar and visibly frames the circular edge.",
+        "When a user has no profile image (fallback initials), the frame still overlays the circular avatar container.",
+        "If no frame is owned/selected, the avatar renders exactly as it did before (no empty overlay artifacts)."
       ],
       "file_operations": [
         {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Replace all Scholar Gold icon link references that currently point to `/assets/generated/*-v3.*` with the new cache-safe filenames: `/assets/generated/scholar-gold-favicon-v4.dim_32x32.png`, `/assets/generated/scholar-gold-app-icon-v4.dim_192x192.png`, and `/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png`."
+          "path": "frontend/src/components/ProfileAvatar.tsx",
+          "operation": "create",
+          "description": "Create a composed ProfileAvatar component that wraps the existing shadcn-ui Avatar and conditionally adds an absolutely-positioned overlay ring for the selected frame. Use a frameId->style mapping (e.g., gold/diamond/rainbow) and ensure the overlay sits above the avatar image/fallback. Use the shadcn-ui (selected component: shadcn-ui) Avatar capability; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/components/ProfileSection.tsx",
           "operation": "modify",
-          "description": "Update the brand logo `<img>` source to use `/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png` instead of the existing v3 filename so the authenticated header shows the new logo on a normal reload."
+          "description": "Use the new ProfileAvatar component in place of the direct Avatar usage, wiring in the user's selected frame (from persisted cosmetics selection) and preserving existing upload/remove behaviors. This file also uses blob-storage ExternalBlob direct URL display capability (selected component: blob-storage); verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Show a dedicated badges area on the Profile that includes streak milestone badges and coin-purchased badges, persisting the badge list for the user across reloads.",
+      "acceptanceCriteria": [
+        "The Profile section shows a dedicated badges area/list/grid.",
+        "Streak milestone badge(s) (based on existing streak badge tier/state) appear in the Profile badges area when earned.",
+        "Coin-purchased badge(s) appear in the Profile badges area after purchase.",
+        "Badges shown on the profile persist across reloads/logins for the same user."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useCosmeticsInventory.ts",
+          "operation": "create",
+          "description": "Create a small cosmetics persistence hook that stores coin-purchased cosmetics (at minimum: purchasedBadgeIds and selectedFrameId/selectedThemeId if needed) in localStorage keyed by the logged-in principal (via existing Internet Identity context), so badges persist across reloads/logins on the same device."
         },
         {
-          "path": "frontend/src/components/LoginScreen.tsx",
+          "path": "frontend/src/components/RewardShopSection.tsx",
           "operation": "modify",
-          "description": "Update the login header brand logo `<img>` source to use `/assets/generated/scholar-gold-app-icon-v4.dim_512x512.png` instead of the existing v3 filename so the login screen shows the new logo on a normal reload."
+          "description": "Replace the current simulated-purchase-only flow with persistence via useCosmeticsInventory for badge items (and keep existing UI structure). Ensure purchasing a profile badge marks it as owned and prevents re-purchase, and that the owned state survives reloads."
+        },
+        {
+          "path": "frontend/src/components/ProfileSection.tsx",
+          "operation": "modify",
+          "description": "Add a dedicated badges grid/area to the Profile UI. Populate it with (1) earned streak milestone badges based on existing streak milestone reward state and/or streak badge tier state, and (2) coin-purchased badges from useCosmeticsInventory. Ensure empty state is handled when no badges are owned/earned."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Apply the currently selected purchased theme as a global app background and persist the selection for the user across reloads.",
+      "acceptanceCriteria": [
+        "After selecting a purchased theme, the app background changes (not just inside the Background Settings UI).",
+        "The selected background persists across reloads/logins for the same user.",
+        "If the user has no selected theme/background, the app uses the default background styling (no broken/missing background)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useAppBackground.ts",
+          "operation": "create",
+          "description": "Create a small hook/context that provides the current global background value and a setter, persisted in localStorage keyed by logged-in principal. Support at least: default (empty), gradient string, and simple color backgrounds."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the global background provider into the app shell and apply the selected background to the top-level app container so it affects all tabs. Ensure fallback to the default styling when no background is selected."
+        },
+        {
+          "path": "frontend/src/components/RewardShopSection.tsx",
+          "operation": "modify",
+          "description": "Connect the Themes tab actions to useAppBackground/useCosmeticsInventory so that selecting a purchased theme updates the global background immediately and persists. Use shadcn-ui components already present for consistent UI (selected component: shadcn-ui); verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/BackgroundSettings.tsx",
+          "operation": "modify",
+          "description": "Integrate BackgroundSettings with the global background hook so that background changes from this UI apply globally (not only within the settings component) and persist. This file uses the camera hook capability (selected component: camera); verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Ensure default background styling remains intact and add minimal global styling support (e.g., a CSS variable target or safe defaults) so applying a global background does not break light/dark themes."
         }
       ]
     }
